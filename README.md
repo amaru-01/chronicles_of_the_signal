@@ -4,6 +4,18 @@ A 2D Cyberpunk RPG built with **Python** and the **Arcade** library, architected
 
 > Explore a neon-soaked city that exists in two overlapping realities — the **Physical World** and the **Digital Memory Grid** — switching between them on the fly to solve puzzles, evade threats, and uncover the signal hidden beneath the city.
 
+## 🧰 Tech Stack
+
+<div align="left">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" /></a>
+  <a href="https://api.arcade.academy/"><img src="https://img.shields.io/badge/Arcade-2D%20Game%20Engine-1F6FEB?style=for-the-badge" alt="Arcade" /></a>
+  <a href="https://pyscript.net/"><img src="https://img.shields.io/badge/PyScript-Web%20Runtime-5B2C83?style=for-the-badge" alt="PyScript" /></a>
+  <a href="https://pyodide.org/"><img src="https://img.shields.io/badge/Pyodide-WASM-5E5CE6?style=for-the-badge" alt="Pyodide" /></a>
+  <a href="https://www.mapeditor.org/"><img src="https://img.shields.io/badge/Tiled-Map%20Editor-8B5CF6?style=for-the-badge" alt="Tiled" /></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/HTML"><img src="https://img.shields.io/badge/HTML5-Frontend-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" /></a>
+  <a href="https://github.com/"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+</div>
+
 ---
 
 ## 📖 Overview
@@ -48,7 +60,8 @@ chronicles_of_the_signal/
 ├── world/                      # Map loading + dual-layer (Physical/Digital) manager
 ├── ui/                         # HUD, dialogue box
 ├── assets/                     # maps/ (Tiled), sprites/, sounds/, fonts/
-└── build/                      # Generated bundle for web deployment
+├── build/                      # Generated bundle for web deployment
+└── README.md                   # Project documentation
 ```
 
 ---
