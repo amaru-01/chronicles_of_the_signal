@@ -1,0 +1,21 @@
+name = "chronicles-of-the-signal"
+description = "A 2D Cyberpunk RPG built with Arcade, running on Pyodide"
+
+packages = [
+    "arcade",
+]
+
+[files]
+"core/"      = "core/"
+"views/"     = "views/"
+"entities/"  = "entities/"
+"world/"     = "world/"
+"ui/"        = "ui/"
+
+"assets/maps/district_01_physical.json"    = "assets/maps/district_01_physical.json"
+"assets/maps/district_01_digital.json"     = "assets/maps/district_01_digital.json"
+"assets/sprites/player/idle.png"           = "assets/sprites/player/idle.png"
+"assets/sounds/sfx/layer_switch.wav"       = "assets/sounds/sfx/layer_switch.wav"
+"assets/fonts/cyber_mono.ttf"              = "assets/fonts/cyber_mono.ttf"
+# Later districts / ambient tracks are intentionally left OUT of this
+# table and fetched lazily at runtime via world/async_loader.py
