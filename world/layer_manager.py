@@ -20,7 +20,10 @@ class LayerManager:
         self.scene = scene
         self.physics_engine = physics_engine
         self.current_layer = WorldLayer.PHYSICAL
-        self.toggle_sound = arcade.load_sound(":resources:sounds/layer_switch.wav")
+        try:
+            self.toggle_sound = arcade.load_sound(":resources:sounds/layer_switch.wav")
+        except FileNotFoundError:
+            self.toggle_sound = None
 
     def toggle(self):
         target = (
@@ -39,13 +42,21 @@ class LayerManager:
         )
 
         for name in show:
-            if name in self.scene.name_mapping:
+            try:
                 self.scene.get_sprite_list(name).visible = True
+            except KeyError:
+                pass
         for name in hide:
-            if name in self.scene.name_mapping:
+            try:
                 self.scene.get_sprite_list(name).visible = False
+            except KeyError:
+                pass
 
         wall_key = "Walls_Physical" if layer == WorldLayer.PHYSICAL else "Walls_Digital"
-        self.physics_engine.walls = self.scene.get_sprite_list(wall_key)
+        try:
+            self.physics_engine.walls = self.scene.get_sprite_list(wall_key)
+        except KeyError:
+            pass
 
-        arcade.play_sound(self.toggle_sound)
+        if self.toggle_sound:
+            arcade.play_sound(self.toggle_sound)

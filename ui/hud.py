@@ -10,7 +10,7 @@ class HUD:
 
     def draw(self):
         gs = self.game_state
-        arcade.draw_text(f"HP: {gs.player_health}", 20, 680, arcade.color.NEON_FUCHSIA, 16)
-        arcade.draw_text(f"SIGNAL: {gs.player_signal_integrity}", 20, 655, arcade.color.ELECTRIC_CYAN, 16)
+        arcade.draw_text(f"HP: {gs.player_health}", 20, 680, arcade.color.PURPLE, 16)
+        arcade.draw_text(f"SIGNAL: {gs.player_signal_integrity}", 20, 655, arcade.color.CYAN, 16)
         layer_label = "PHYSICAL WORLD" if gs.current_layer == WorldLayer.PHYSICAL else "MEMORY GRID"
-        arcade.draw_text(layer_label, 20, 630, arcade.color.ACID_GREEN, 16)
+        arcade.draw_text(layer_label, 20, 630, arcade.color.GREEN, 16)
