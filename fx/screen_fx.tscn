@@ -1,0 +1,51 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://fx/screen_fx.gd" id="1_fx"]
+[ext_resource type="Shader" path="res://shaders/glitch.gdshader" id="2_glitch"]
+[ext_resource type="Shader" path="res://shaders/crt_overlay.gdshader" id="3_crt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glitch"]
+shader = ExtResource("2_glitch")
+shader_parameter/intensity = 0.0
+shader_parameter/tint = Color(0, 0.94, 1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("3_crt")
+shader_parameter/scanline_strength = 0.1
+shader_parameter/vignette_strength = 0.55
+
+[node name="ScreenFX" type="Node"]
+script = ExtResource("1_fx")
+
+[node name="GlitchLayer" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="Glitch" type="ColorRect" parent="GlitchLayer"]
+material = SubResource("ShaderMaterial_glitch")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Flash" type="ColorRect" parent="GlitchLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.1, 0.2, 0)
+
+[node name="OverlayLayer" type="CanvasLayer" parent="."]
+layer = 60
+
+[node name="Overlay" type="ColorRect" parent="OverlayLayer"]
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

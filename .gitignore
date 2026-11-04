@@ -1,26 +1,29 @@
-# Python bytecode and caches
-__pycache__/
-*.py[cod]
-*$py.class
+# Godot 4 generated files
+# (Do NOT ignore *.uid, *.import or export_presets.cfg - they should be committed.)
+.godot/
+.import/
+*.translation
+.mono/
+data_*/
+mono_crash.*.json
 
-# Virtual environments
-venv/
-.venv/
-env/
-.env/
+# Secrets - export_credentials.cfg holds signing keys / passwords
+export_credentials.cfg
 
-# Test, type-checker, and linter caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-
-# Generated web deployment bundle
+# Export output and itch.io upload archives
+/exports/
 /build/
+*.zip
 
-# Editor and operating-system files
+# Android build template output
+/android/
+
+# Editor, tooling and operating-system files
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
+desktop.ini
+*.tmp
+*.bak

@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/interactables/door.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/objects/door.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_area"]
+size = Vector2(112, 128)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_blocker"]
+size = Vector2(32, 64)
+
+[node name="Door" type="Area2D"]
+script = ExtResource("1_script")
+prompt_text = "Inspect"
+realm = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_area")
+
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="Blocker" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Blocker"]
+shape = SubResource("RectangleShape2D_blocker")
+
+[node name="Prompt" type="Label" parent="."]
+offset_left = -70.0
+offset_top = -80.0
+offset_right = 70.0
+offset_bottom = -54.0
+theme_override_colors/font_outline_color = Color(0.02, 0.01, 0.06, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 12
+text = "[E] Interact"
+horizontal_alignment = 1
