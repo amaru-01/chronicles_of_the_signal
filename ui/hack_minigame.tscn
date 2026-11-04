@@ -1,0 +1,89 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/hack_minigame.gd" id="1_hack"]
+
+[node name="HackMinigame" type="CanvasLayer"]
+process_mode = 3
+layer = 30
+script = ExtResource("1_hack")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.02, 0.04, 0.82)
+
+[node name="Center" type="CenterContainer" parent="Dim"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Dim/Center"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Dim/Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Dim/Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Dim/Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "// BREACH PROTOCOL"
+horizontal_alignment = 1
+
+[node name="Status" type="HBoxContainer" parent="Dim/Center/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="TimeLabel" type="Label" parent="Dim/Center/Panel/Margin/VBox/Status"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "TIME 30.0"
+
+[node name="AttemptsLabel" type="Label" parent="Dim/Center/Panel/Margin/VBox/Status"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ATTEMPTS ####"
+horizontal_alignment = 2
+
+[node name="TimeBar" type="ProgressBar" parent="Dim/Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 30.0
+value = 30.0
+show_percentage = false
+
+[node name="Body" type="HBoxContainer" parent="Dim/Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Words" type="GridContainer" parent="Dim/Center/Panel/Margin/VBox/Body"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="Log" type="Label" parent="Dim/Center/Panel/Margin/VBox/Body"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 1, 0.08, 1)
+text = "> "
+
+[node name="Hint" type="Label" parent="Dim/Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 15
+text = "One code is the key. Likeness = letters in the right place.   Arrows + Enter: choose   Esc: abort"
+horizontal_alignment = 1

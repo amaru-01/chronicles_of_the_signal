@@ -36,6 +36,7 @@ window/stretch/mode="canvas_items"
 
 [gui]
 
+theme/custom="res://ui/theme.tres"
 theme/custom_font="res://assets/fonts/cyber_mono.ttf"
 
 [input]
@@ -90,5 +91,6 @@ move_down={
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.02, 0.01, 0.05, 1)
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

@@ -4,12 +4,14 @@ extends CharacterBody2D
 
 const SPEED: float = 300.0
 
-## Half-size of the collision box, used by WorldLayers to test a layer swap.
-const HALF_SIZE: float = 12.0
+## The collision box is just the feet, so the head can overlap walls (top-down look).
+const FEET_SIZE: Vector2 = Vector2(16, 12)
+const FEET_OFFSET: Vector2 = Vector2(0, 16)
 
 var _nearby: Array[Interactable] = []
 var _target: Interactable
 
+@onready var _sprite: CharacterSprite = $Sprite
 @onready var _interact_area: Area2D = $InteractArea
 
 
@@ -24,6 +26,7 @@ func _physics_process(_delta: float) -> void:
 	else:
 		velocity = Input.get_vector("move_left", "move_right", "move_up", "move_down") * SPEED
 	move_and_slide()
+	_sprite.update_motion(velocity)
 	_update_target()
 
 
@@ -35,19 +38,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		_target.interact(self)
 
 
+## The feet box in global space (what physically collides).
 func get_rect() -> Rect2:
-	return Rect2(global_position - Vector2(HALF_SIZE, HALF_SIZE), Vector2(HALF_SIZE, HALF_SIZE) * 2.0)
+	return Rect2(global_position + FEET_OFFSET - FEET_SIZE / 2.0, FEET_SIZE)
 
 
-## Corner points of the player's box in global space.
+## Corner points of the feet box in global space.
 func get_corners() -> Array[Vector2]:
-	var p: Vector2 = global_position
-	return [
-		p + Vector2(-HALF_SIZE, -HALF_SIZE),
-		p + Vector2(HALF_SIZE, -HALF_SIZE),
-		p + Vector2(-HALF_SIZE, HALF_SIZE),
-		p + Vector2(HALF_SIZE, HALF_SIZE),
-	]
+	var r: Rect2 = get_rect()
+	return [r.position, r.position + Vector2(r.size.x, 0), r.position + Vector2(0, r.size.y), r.end]
 
 
 ## Pick the closest interactable in range and show only its prompt.

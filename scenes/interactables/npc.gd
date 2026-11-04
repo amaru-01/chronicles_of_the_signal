@@ -7,8 +7,11 @@ extends Interactable
 @export var alt_if_hacked: String = ""
 @export var alt_lines: Array[String] = []
 
+@onready var _sprite: CharacterSprite = $Sprite
 
-func interact(_player: Node2D) -> void:
+
+func interact(player: Node2D) -> void:
+	_sprite.face_towards(player.global_position)
 	if alt_if_hacked != "" and GameState.is_hacked(alt_if_hacked) and not alt_lines.is_empty():
 		Dialogue.start(speaker, alt_lines)
 	else:

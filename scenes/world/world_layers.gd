@@ -6,9 +6,9 @@ extends Node2D
 ## AND removes its collision, so one flag swaps both visuals and physics.
 ## Needs Godot 4.3+ (TileMapLayer).
 ##
-## TEST-ROOM ONLY: the tilesets and walls are generated in code so the project
-## runs without any painted art. Replace `_build_test_room()` with real
-## TileMapLayer nodes authored in the editor when you build District 01.
+## TEST-ROOM ONLY: the tilesets are built from the PNGs in assets/tiles and the
+## room is laid out in code. Replace `_build_test_room()` with real TileMapLayer
+## nodes authored in the editor when you build District 01.
 
 signal layer_changed(layer: GameState.WorldLayer)
 signal swap_blocked
@@ -20,6 +20,10 @@ const DIGITAL_COLLISION_BIT: int = 3   # physics layer "world_digital"
 
 const TILE_WALL: Vector2i = Vector2i(0, 0)
 const TILE_FLOOR: Vector2i = Vector2i(1, 0)
+const TILE_FLOOR_ALT: Vector2i = Vector2i(2, 0)
+
+const PHYSICAL_TILES: Texture2D = preload("res://assets/tiles/physical_tiles.png")
+const DIGITAL_TILES: Texture2D = preload("res://assets/tiles/digital_tiles.png")
 
 @export var player: Player
 
@@ -28,8 +32,8 @@ var digital: TileMapLayer
 
 
 func _ready() -> void:
-	physical = _make_layer(Color("ff2e97"), Color("1a1226"), PHYSICAL_COLLISION_BIT)
-	digital = _make_layer(Color("00f0ff"), Color("06202a"), DIGITAL_COLLISION_BIT)
+	physical = _make_layer(PHYSICAL_TILES, PHYSICAL_COLLISION_BIT)
+	digital = _make_layer(DIGITAL_TILES, DIGITAL_COLLISION_BIT)
 	physical.name = "Physical"
 	digital.name = "Digital"
 	add_child(physical)
@@ -95,23 +99,20 @@ func _is_player_inside_wall(target: TileMapLayer) -> bool:
 
 # --- test-room generation ----------------------------------------------------
 
-func _make_layer(wall_color: Color, floor_color: Color, collision_bit: int) -> TileMapLayer:
+func _make_layer(texture: Texture2D, collision_bit: int) -> TileMapLayer:
 	var tile_set := TileSet.new()
 	tile_set.tile_size = Vector2i(TILE_SIZE, TILE_SIZE)
 	tile_set.add_physics_layer()
 	tile_set.set_physics_layer_collision_layer(0, 1 << (collision_bit - 1))
 	tile_set.set_physics_layer_collision_mask(0, 0)
 
-	# 2-tile atlas: [wall][floor]
-	var image := Image.create(TILE_SIZE * 2, TILE_SIZE, false, Image.FORMAT_RGBA8)
-	image.fill_rect(Rect2i(0, 0, TILE_SIZE, TILE_SIZE), wall_color)
-	image.fill_rect(Rect2i(TILE_SIZE, 0, TILE_SIZE, TILE_SIZE), floor_color)
-
+	# 3-tile atlas: [wall][floor][floor variant]
 	var source := TileSetAtlasSource.new()
-	source.texture = ImageTexture.create_from_image(image)
+	source.texture = texture
 	source.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
 	source.create_tile(TILE_WALL)
 	source.create_tile(TILE_FLOOR)
+	source.create_tile(TILE_FLOOR_ALT)
 	tile_set.add_source(source, 0)
 
 	var half: float = TILE_SIZE / 2.0
@@ -128,11 +129,15 @@ func _make_layer(wall_color: Color, floor_color: Color, collision_bit: int) -> T
 
 
 func _build_test_room() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7  # same floor pattern in both worlds
 	for x: int in ROOM_SIZE.x:
 		for y: int in ROOM_SIZE.y:
 			var border: bool = x == 0 or y == 0 or x == ROOM_SIZE.x - 1 or y == ROOM_SIZE.y - 1
-			physical.set_cell(Vector2i(x, y), 0, TILE_WALL if border else TILE_FLOOR)
-			digital.set_cell(Vector2i(x, y), 0, TILE_WALL if border else TILE_FLOOR)
+			var floor_tile: Vector2i = TILE_FLOOR_ALT if rng.randf() < 0.18 else TILE_FLOOR
+			var tile: Vector2i = TILE_WALL if border else floor_tile
+			physical.set_cell(Vector2i(x, y), 0, tile)
+			digital.set_cell(Vector2i(x, y), 0, tile)
 
 	# Physical: a divider across the room with a gap (filled by the Door).
 	for y: int in range(1, ROOM_SIZE.y - 1):

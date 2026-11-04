@@ -8,7 +8,7 @@ var _opened: bool = false
 
 @onready var _blocker: StaticBody2D = $Blocker
 @onready var _blocker_shape: CollisionShape2D = $Blocker/CollisionShape2D
-@onready var _body: ColorRect = $Body
+@onready var _body: Sprite2D = $Body
 
 
 func _ready() -> void:

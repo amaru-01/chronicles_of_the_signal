@@ -5,12 +5,18 @@ extends Interactable
 @export var item_id: String = "data_fragment"
 @export var item_name: String = "Data Fragment"
 
+@onready var _sprite: Sprite2D = $Body
+
 
 func _ready() -> void:
 	if GameState.flags.has("picked_" + item_id):
 		queue_free()
 		return
 	super()
+	# Gentle bob so it reads as collectable.
+	var tween: Tween = create_tween().set_loops()
+	tween.tween_property(_sprite, "position:y", -3.0, 0.8).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(_sprite, "position:y", 3.0, 0.8).set_trans(Tween.TRANS_SINE)
 
 
 func interact(_player: Node2D) -> void:

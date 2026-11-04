@@ -1,6 +1,14 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://ui/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://assets/tiles/digital_tiles.png" id="2_tiles"]
+[ext_resource type="Script" path="res://scenes/player/character_sprite.gd" id="3_sprite"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player/player_sheet.png" id="4_sheet"]
+[ext_resource type="PackedScene" path="res://fx/screen_fx.tscn" id="5_fx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_floor"]
+atlas = ExtResource("2_tiles")
+region = Rect2(32, 0, 32, 32)
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -18,7 +26,25 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.03, 0.09, 1)
+color = Color(0.03, 0.02, 0.08, 1)
+
+[node name="Grid" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.55)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTexture_floor")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Hero" type="AnimatedSprite2D" parent="."]
+position = Vector2(-100, 618)
+scale = Vector2(4, 4)
+script = ExtResource("3_sprite")
+sheet = ExtResource("4_sheet")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -35,6 +61,8 @@ theme_override_constants/separation = 14
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.18, 0.59, 1)
+theme_override_colors/font_outline_color = Color(0.4, 0, 0.25, 1)
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 56
 text = "CHRONICLES OF THE SIGNAL"
 horizontal_alignment = 1
@@ -50,13 +78,13 @@ custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
 [node name="StartButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(220, 44)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Start"
 
 [node name="QuitButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(220, 44)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Quit"
@@ -64,5 +92,9 @@ text = "Quit"
 [node name="Controls" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 16
 text = "WASD / arrows: move    Space: swap worlds    E: interact    Esc: pause"
 horizontal_alignment = 1
+
+[node name="ScreenFX" parent="." instance=ExtResource("5_fx")]
+react_to_layer_swap = false
