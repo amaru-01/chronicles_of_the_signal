@@ -1,15 +1,29 @@
-# Godot 4
+# Godot 4 generated files
+# (Do NOT ignore *.uid, *.import or export_presets.cfg - they should be committed.)
 .godot/
 .import/
 *.translation
+.mono/
+data_*/
+mono_crash.*.json
+
+# Secrets - export_credentials.cfg holds signing keys / passwords
 export_credentials.cfg
 
-# Web / desktop export output
+# Export output and itch.io upload archives
 /exports/
 /build/
+*.zip
 
-# Editor and operating-system files
+# Android build template output
+/android/
+
+# Editor, tooling and operating-system files
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
+desktop.ini
+*.tmp
+*.bak
