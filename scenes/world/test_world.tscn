@@ -1,8 +1,13 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/test_world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scenes/world/world_layers.gd" id="2_layers"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/npc.tscn" id="4_npc"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/terminal.tscn" id="5_terminal"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/door.tscn" id="6_door"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/pickup.tscn" id="7_pickup"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="8_pause"]
 
 [node name="TestWorld" type="Node2D"]
 script = ExtResource("1_world")
@@ -10,6 +15,28 @@ script = ExtResource("1_world")
 [node name="Layers" type="Node2D" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("2_layers")
 player = NodePath("../Player")
+
+[node name="Fixer" parent="." instance=ExtResource("4_npc")]
+position = Vector2(176, 176)
+realm = 1
+speaker = "FIXER"
+lines = Array[String](["Signal's weak out here. The wall splits this district in two, but only in the real world.", "Press Space. The Grid has no wall. Get across, find the terminal, and open the gate for me."])
+alt_if_hacked = "term_gate"
+alt_lines = Array[String](["You opened it. Maybe you're not just another ghost in the wire."])
+
+[node name="Fragment" parent="." instance=ExtResource("7_pickup")]
+position = Vector2(144, 464)
+item_id = "fragment_01"
+item_name = "Memory Fragment"
+
+[node name="Door" parent="." instance=ExtResource("6_door")]
+position = Vector2(656, 320)
+required_terminal = "term_gate"
+
+[node name="Terminal" parent="." instance=ExtResource("5_terminal")]
+position = Vector2(976, 304)
+realm = 1
+terminal_id = "term_gate"
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector2(112, 112)
@@ -21,3 +48,5 @@ offset_left = 16.0
 offset_top = 8.0
 offset_right = 900.0
 offset_bottom = 34.0
+
+[node name="PauseMenu" parent="." instance=ExtResource("8_pause")]

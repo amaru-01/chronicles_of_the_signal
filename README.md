@@ -25,7 +25,8 @@ Architecture:
 
 - **`GameState` autoload** — health, signal integrity, inventory, hacked terminals and story flags persist across scenes.
 - **`WorldLayers`** — each world is a `TileMapLayer`; toggling `enabled` swaps drawing *and* collision at once. A swap is blocked if it would leave the player inside a wall.
-- **Scene-per-thing** — Player, NPCs, terminals and doors are their own scenes (interaction via `Area2D` + the `interact` action).
+- **Interactables** — everything the player can press **E** on extends `Interactable` (an `Area2D`). Set its `realm` to make it exist in only one world. Terminals, doors, NPCs and pickups are built on it.
+- **Autoloads** — `GameState` (persistent state), `SceneManager` (fade scene changes), `Dialogue` (typewriter dialogue box).
 - **Signals over references** — systems talk through signals such as `layer_changed`.
 
 ## 📁 Project Structure
@@ -35,9 +36,10 @@ chronicles_of_the_signal/
 ├── project.godot            # Engine config, input actions, physics layer names
 ├── scenes/
 │   ├── player/              # player.tscn + player.gd
+│   ├── interactables/       # interactable.gd base + terminal, door, npc, pickup
 │   └── world/               # test_world.tscn, world_layers.gd (layer swap)
-├── scripts/autoload/        # game_state.gd (global state)
-├── ui/                      # HUD, dialogue, menus (to come)
+├── scripts/autoload/        # game_state.gd, scene_manager.gd
+├── ui/                      # title screen, pause menu, dialogue box
 └── assets/                  # fonts/, sprites/, audio/
 ```
 
@@ -70,7 +72,7 @@ Browsers block audio until the first click or key press, so keep a title screen 
 
 - [x] Port project to Godot, global state, layer swap trial
 - [ ] Real tileset and District 01 maps
-- [ ] Interactables and NPC dialogue
+- [x] Interactables, NPC dialogue, title screen, pause menu
 - [ ] Terminal hacking minigame
 - [ ] Glitch shader, audio, pause menu, save/load
 - [ ] itch.io release

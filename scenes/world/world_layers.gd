@@ -39,7 +39,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("toggle_layer"):
+	if event.is_action_pressed("toggle_layer") and not Dialogue.is_active:
 		toggle()
 
 
@@ -57,7 +57,7 @@ func set_layer(target: GameState.WorldLayer) -> void:
 		return
 	# DESIGN DECISION: block the swap if it would put the player inside a wall.
 	# Alternatives: push the player out, or damage them as a game mechanic.
-	if player != null and _is_player_inside_wall(_layer_node(target)):
+	if player != null and _would_trap_player(target):
 		swap_blocked.emit()
 		return
 	_apply_layer(target)
@@ -65,13 +65,24 @@ func set_layer(target: GameState.WorldLayer) -> void:
 
 
 func _apply_layer(layer: GameState.WorldLayer) -> void:
-	GameState.current_layer = layer
 	physical.enabled = layer == GameState.WorldLayer.PHYSICAL
 	digital.enabled = layer == GameState.WorldLayer.DIGITAL
+	GameState.set_layer(layer)  # emits GameState.layer_changed for interactables
 
 
 func _layer_node(layer: GameState.WorldLayer) -> TileMapLayer:
 	return physical if layer == GameState.WorldLayer.PHYSICAL else digital
+
+
+func _would_trap_player(target: GameState.WorldLayer) -> bool:
+	if _is_player_inside_wall(_layer_node(target)):
+		return true
+	var player_rect: Rect2 = player.get_rect()
+	for node: Node in get_tree().get_nodes_in_group("interactable"):
+		var interactable := node as Interactable
+		if interactable and interactable.blocks_swap(target, player_rect):
+			return true
+	return false
 
 
 func _is_player_inside_wall(target: TileMapLayer) -> bool:
@@ -123,10 +134,11 @@ func _build_test_room() -> void:
 			physical.set_cell(Vector2i(x, y), 0, TILE_WALL if border else TILE_FLOOR)
 			digital.set_cell(Vector2i(x, y), 0, TILE_WALL if border else TILE_FLOOR)
 
-	# Physical: a wall across the middle with the gap blocked.
-	for y: int in range(3, 17):
-		physical.set_cell(Vector2i(20, y), 0, TILE_WALL)
-	# Digital: that wall does not exist, but a different block sits elsewhere.
+	# Physical: a divider across the room with a gap (filled by the Door).
+	for y: int in range(1, ROOM_SIZE.y - 1):
+		if y != 9 and y != 10:
+			physical.set_cell(Vector2i(20, y), 0, TILE_WALL)
+	# Digital: no divider, but a solid block on the left side.
 	for x: int in range(8, 14):
 		for y: int in range(8, 12):
 			digital.set_cell(Vector2i(x, y), 0, TILE_WALL)

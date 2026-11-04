@@ -15,12 +15,14 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Chronicles of the Signal"
-run/main_scene="res://scenes/world/test_world.tscn"
+run/main_scene="res://ui/title_screen.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
 GameState="*res://scripts/autoload/game_state.gd"
+SceneManager="*res://scripts/autoload/scene_manager.gd"
+Dialogue="*res://ui/dialogue_box.tscn"
 
 [debug]
 
@@ -31,6 +33,10 @@ gdscript/warnings/untyped_declaration=1
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
+
+[gui]
+
+theme/custom_font="res://assets/fonts/cyber_mono.ttf"
 
 [input]
 

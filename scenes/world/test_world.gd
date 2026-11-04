@@ -1,5 +1,5 @@
 extends Node2D
-## Trial scene: walk around and press Space to swap worlds.
+## Trial scene: walk around, swap worlds, talk, hack, open the door.
 
 @onready var _layers: WorldLayers = $Layers
 @onready var _label: Label = $HUD/Label
@@ -23,4 +23,4 @@ func _refresh_label(extra: String) -> void:
 	var world: String = (
 		"PHYSICAL" if GameState.current_layer == GameState.WorldLayer.PHYSICAL else "DIGITAL"
 	)
-	_label.text = "World: %s   (WASD / arrows move, Space swaps)%s" % [world, extra]
+	_label.text = "World: %s   Items: %d%s" % [world, GameState.inventory.size(), extra]
