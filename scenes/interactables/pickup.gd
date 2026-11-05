@@ -4,6 +4,8 @@ extends Interactable
 
 @export var item_id: String = "data_fragment"
 @export var item_name: String = "Data Fragment"
+## Story text shown after pickup (what the memory contains).
+@export var memory_lines: Array[String] = []
 
 @onready var _sprite: Sprite2D = $Body
 
@@ -20,7 +22,10 @@ func _ready() -> void:
 
 
 func interact(_player: Node2D) -> void:
+	Audio.sfx("pickup")
 	GameState.add_item(item_id)
 	GameState.flags["picked_" + item_id] = true
-	Dialogue.start("", ["Collected: %s." % item_name])
+	var lines: Array[String] = ["Collected: %s." % item_name]
+	lines.append_array(memory_lines)
+	Dialogue.start("MEMORY" if not memory_lines.is_empty() else "", lines)
 	queue_free()

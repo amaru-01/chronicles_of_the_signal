@@ -77,6 +77,12 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
+[node name="ContinueButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Continue"
+
 [node name="StartButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
@@ -93,7 +99,7 @@ text = "Quit"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.55, 0.65, 1)
 theme_override_font_sizes/font_size = 16
-text = "WASD / arrows: move    Space: swap worlds    E: interact    Esc: pause"
+text = "WASD / arrows: move    Space: swap worlds    E: interact    H: hint    Esc: pause"
 horizontal_alignment = 1
 
 [node name="ScreenFX" parent="." instance=ExtResource("5_fx")]

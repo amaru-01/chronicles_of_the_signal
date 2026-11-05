@@ -38,6 +38,40 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 text = "Resume"
 
+[node name="MusicRow" type="HBoxContainer" parent="Dim/Center/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Dim/Center/VBox/MusicRow"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Music"
+
+[node name="Slider" type="HSlider" parent="Dim/Center/VBox/MusicRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="SfxRow" type="HBoxContainer" parent="Dim/Center/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Dim/Center/VBox/SfxRow"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Effects"
+
+[node name="Slider" type="HSlider" parent="Dim/Center/VBox/SfxRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.7
+
 [node name="MenuButton" type="Button" parent="Dim/Center/VBox"]
 custom_minimum_size = Vector2(220, 44)
 layout_mode = 2

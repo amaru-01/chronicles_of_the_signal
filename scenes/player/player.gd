@@ -10,23 +10,29 @@ const FEET_OFFSET: Vector2 = Vector2(0, 16)
 
 var _nearby: Array[Interactable] = []
 var _target: Interactable
+var _step_timer: float = 0.0
 
 @onready var _sprite: CharacterSprite = $Sprite
 @onready var _interact_area: Area2D = $InteractArea
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_interact_area.area_entered.connect(_on_area_entered)
 	_interact_area.area_exited.connect(_on_area_exited)
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if Dialogue.is_active:
 		velocity = Vector2.ZERO
 	else:
 		velocity = Input.get_vector("move_left", "move_right", "move_up", "move_down") * SPEED
 	move_and_slide()
 	_sprite.update_motion(velocity)
+	_step_timer -= delta
+	if velocity.length() > 1.0 and _step_timer <= 0.0:
+		_step_timer = 0.32
+		Audio.sfx("step", -8.0)
 	_update_target()
 
 

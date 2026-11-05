@@ -1,56 +1,76 @@
-extends Node2D
-## Trial scene: walk around, swap worlds, talk, hack, open the door.
+extends District
+## District 01 "Static Row": walk, swap worlds, talk, hack two gates, reach the exit.
 
-@onready var _layers: WorldLayers = $Layers
-@onready var _fx: ScreenFX = $ScreenFX
-@onready var _world_label: Label = $HUD/Margin/VBox/WorldLabel
-@onready var _integrity_bar: ProgressBar = $HUD/Margin/VBox/IntegrityBar
-@onready var _integrity_label: Label = $HUD/Margin/VBox/IntegrityLabel
-@onready var _notice: Label = $HUD/Notice
+## Puzzle hints (press H). Objectives are checked in order and the first one that
+## is not done is hinted. Each press on the same objective gives a more direct tier.
+## `done` is a method name on this script; `tiers` go from vague to explicit.
+const OBJECTIVES: Array[Dictionary] = [
+	{
+		"done": "_gate_done",
+		"tiers": [
+			"A wall splits this district in two. Maybe it is not solid everywhere.",
+			"Press Space to swap to the Digital Grid. Some walls only exist in one world.",
+			"In the Grid, walk across the middle of the map. Then swap back (Space) and find the terminal near the first gate.",
+		],
+	},
+	{
+		"done": "_relay_done",
+		"tiers": [
+			"The second gate needs more than one key. Look for terminals.",
+			"The relay terminal sits in a walled room in the north. Real-world walls, but the Grid has none.",
+			"Swap to the Grid, walk into the walled room in the north, and hack the terminal inside. Hack it from either world.",
+		],
+	},
+	{
+		"done": "_south_done",
+		"tiers": [
+			"One more key is still missing for the second gate.",
+			"There is a terminal in the south of the middle area.",
+			"Walk to the south of the middle area (below the relay room) and hack the terminal there.",
+		],
+	},
+	{
+		"done": "_timed_done",
+		"tiers": [
+			"The last gate has no terminal. Something else must open it.",
+			"A lever in the north of the east area only exists in the Grid. Its power does not last.",
+			"Swap to the Grid and pull the lever in the north-east. The gate stays open for 12 seconds, so run to it. Drones patrol the Grid, swap back if one gets close.",
+		],
+	},
+	{
+		"done": "_exit_done",
+		"tiers": [
+			"The way out is through the last gate, to the east.",
+			"Walk through the open gate and keep going east.",
+			"Walk east through the last gate to leave the district.",
+		],
+	},
+]
+const VAULT_HINT: String = "Optional: a vault in the south-west has a lever that only exists in the Grid."
 
 
-func _ready() -> void:
-	_layers.layer_changed.connect(func(_layer: GameState.WorldLayer) -> void: _refresh_hud())
-	_layers.swap_blocked.connect(_on_swap_blocked)
-	GameState.integrity_changed.connect(func(_value: int) -> void: _on_integrity_changed())
-	GameState.signal_lost.connect(_on_signal_lost)
-	_notice.modulate.a = 0.0
-	_refresh_hud()
+
+func _objectives() -> Array[Dictionary]:
+	return OBJECTIVES
 
 
-func _on_swap_blocked() -> void:
-	_fx.flash(Color(1.0, 0.1, 0.2, 0.35), 0.3)
-	_show_notice("Can't swap: you'd be stuck inside something solid")
+func _gate_done() -> bool:
+	return GameState.is_hacked("term_gate")
 
 
-func _on_integrity_changed() -> void:
-	_fx.pulse(0.6, 0.3)
-	_fx.flash(Color(1.0, 0.1, 0.2, 0.3), 0.4)
-	_refresh_hud()
+func _relay_done() -> bool:
+	return GameState.is_hacked("term_relay")
 
 
-func _on_signal_lost() -> void:
-	if Dialogue.is_active:
-		await Dialogue.finished
-	Dialogue.start("SYSTEM", ["SIGNAL LOST.", "Rebooting from the last safe point..."])
-	await Dialogue.finished
-	GameState.restore_signal()
-	GameState.current_layer = GameState.WorldLayer.PHYSICAL
-	SceneManager.change_scene(scene_file_path)
+func _south_done() -> bool:
+	return GameState.is_hacked("term_south")
 
 
-func _refresh_hud() -> void:
-	var world: String = (
-		"PHYSICAL" if GameState.current_layer == GameState.WorldLayer.PHYSICAL else "DIGITAL"
-	)
-	_world_label.text = "WORLD: %s   ITEMS: %d" % [world, GameState.inventory.size()]
-	_integrity_bar.value = GameState.player_signal_integrity
-	_integrity_label.text = "SIGNAL INTEGRITY %d%%" % GameState.player_signal_integrity
+func _timed_done() -> bool:
+	return _player.global_position.x > 1424.0  # past the last gate
 
 
-func _show_notice(text: String) -> void:
-	_notice.text = text
-	_notice.modulate.a = 1.0
-	var tween: Tween = create_tween()
-	tween.tween_interval(1.2)
-	tween.tween_property(_notice, "modulate:a", 0.0, 0.5)
+func _exit_done() -> bool:
+	return false
+
+

@@ -4,6 +4,8 @@ extends CanvasLayer
 const TITLE_SCENE: String = "res://ui/title_screen.tscn"
 
 @onready var _resume: Button = $Dim/Center/VBox/ResumeButton
+@onready var _music: HSlider = $Dim/Center/VBox/MusicRow/Slider
+@onready var _sfx: HSlider = $Dim/Center/VBox/SfxRow/Slider
 @onready var _menu: Button = $Dim/Center/VBox/MenuButton
 @onready var _quit: Button = $Dim/Center/VBox/QuitButton
 
@@ -13,6 +15,13 @@ func _ready() -> void:
 	_resume.pressed.connect(_set_paused.bind(false))
 	_menu.pressed.connect(func() -> void: SceneManager.change_scene(TITLE_SCENE))
 	_quit.pressed.connect(get_tree().quit)
+	_music.set_value_no_signal(Audio.music_volume)
+	_sfx.set_value_no_signal(Audio.sfx_volume)
+	_music.value_changed.connect(Audio.set_music_volume)
+	_sfx.value_changed.connect(func(value: float) -> void:
+		Audio.set_sfx_volume(value)
+		Audio.sfx("click")
+	)
 	_quit.visible = not OS.has_feature("web")
 
 
