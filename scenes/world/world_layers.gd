@@ -6,15 +6,16 @@ extends Node2D
 ## AND removes its collision, so one flag swaps both visuals and physics.
 ## Needs Godot 4.3+ (TileMapLayer).
 ##
-## TEST-ROOM ONLY: the tilesets are built from the PNGs in assets/tiles and the
-## room is laid out in code. Replace `_build_test_room()` with real TileMapLayer
-## nodes authored in the editor when you build District 01.
+## The tilesets are built from the PNGs in assets/tiles and the district is
+## loaded from a text map (`map_path`). Legend:
+##   #  wall in both worlds     .  floor in both worlds
+##   P  wall in Physical only   D  wall in Digital only
+## Rows must all be the same length.
 
 signal layer_changed(layer: GameState.WorldLayer)
 signal swap_blocked
 
 const TILE_SIZE: int = 32
-const ROOM_SIZE: Vector2i = Vector2i(40, 20)
 const PHYSICAL_COLLISION_BIT: int = 2  # physics layer "world_physical"
 const DIGITAL_COLLISION_BIT: int = 3   # physics layer "world_digital"
 
@@ -26,6 +27,10 @@ const PHYSICAL_TILES: Texture2D = preload("res://assets/tiles/physical_tiles.png
 const DIGITAL_TILES: Texture2D = preload("res://assets/tiles/digital_tiles.png")
 
 @export var player: Player
+@export_file("*.txt") var map_path: String = "res://scenes/world/maps/district_01.txt"
+
+## Map size in tiles, set after the map is loaded.
+var map_size: Vector2i = Vector2i.ZERO
 
 var physical: TileMapLayer
 var digital: TileMapLayer
@@ -38,7 +43,7 @@ func _ready() -> void:
 	digital.name = "Digital"
 	add_child(physical)
 	add_child(digital)
-	_build_test_room()
+	_load_map()
 	_apply_layer(GameState.current_layer)
 
 
@@ -97,7 +102,7 @@ func _is_player_inside_wall(target: TileMapLayer) -> bool:
 	return false
 
 
-# --- test-room generation ----------------------------------------------------
+# --- map loading ----------------------------------------------------
 
 func _make_layer(texture: Texture2D, collision_bit: int) -> TileMapLayer:
 	var tile_set := TileSet.new()
@@ -128,22 +133,31 @@ func _make_layer(texture: Texture2D, collision_bit: int) -> TileMapLayer:
 	return layer
 
 
-func _build_test_room() -> void:
+func _load_map() -> void:
+	var file := FileAccess.open(map_path, FileAccess.READ)
+	if file == null:
+		push_error("WorldLayers: cannot open map %s" % map_path)
+		return
+	var rows: PackedStringArray = file.get_as_text().strip_edges().split("
+")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7  # same floor pattern in both worlds
-	for x: int in ROOM_SIZE.x:
-		for y: int in ROOM_SIZE.y:
-			var border: bool = x == 0 or y == 0 or x == ROOM_SIZE.x - 1 or y == ROOM_SIZE.y - 1
+	map_size = Vector2i(rows[0].strip_edges().length(), rows.size())
+	for y: int in rows.size():
+		var row: String = rows[y].strip_edges()
+		if row.length() != map_size.x:
+			push_error("WorldLayers: row %d has length %d, expected %d" % [y, row.length(), map_size.x])
+		for x: int in row.length():
 			var floor_tile: Vector2i = TILE_FLOOR_ALT if rng.randf() < 0.18 else TILE_FLOOR
-			var tile: Vector2i = TILE_WALL if border else floor_tile
-			physical.set_cell(Vector2i(x, y), 0, tile)
-			digital.set_cell(Vector2i(x, y), 0, tile)
-
-	# Physical: a divider across the room with a gap (filled by the Door).
-	for y: int in range(1, ROOM_SIZE.y - 1):
-		if y != 9 and y != 10:
-			physical.set_cell(Vector2i(20, y), 0, TILE_WALL)
-	# Digital: no divider, but a solid block on the left side.
-	for x: int in range(8, 14):
-		for y: int in range(8, 12):
-			digital.set_cell(Vector2i(x, y), 0, TILE_WALL)
+			var phys: Vector2i = floor_tile
+			var digi: Vector2i = floor_tile
+			match row[x]:
+				"#":
+					phys = TILE_WALL
+					digi = TILE_WALL
+				"P":
+					phys = TILE_WALL
+				"D":
+					digi = TILE_WALL
+			physical.set_cell(Vector2i(x, y), 0, phys)
+			digital.set_cell(Vector2i(x, y), 0, digi)

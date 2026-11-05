@@ -2,10 +2,11 @@ extends Control
 ## Title screen. Browsers block audio until a click or key press, so every
 ## web build should start here.
 
-const GAME_SCENE: String = "res://scenes/world/test_world.tscn"
+const GAME_SCENE: String = "res://scenes/world/district_01.tscn"
 const HERO_START_X: float = -100.0
 const HERO_END_X: float = 1380.0
 
+@onready var _continue: Button = $Center/VBox/ContinueButton
 @onready var _start: Button = $Center/VBox/StartButton
 @onready var _quit: Button = $Center/VBox/QuitButton
 @onready var _hero: CharacterSprite = $Hero
@@ -14,15 +15,24 @@ const HERO_END_X: float = 1380.0
 
 func _ready() -> void:
 	_start.pressed.connect(_on_start_pressed)
+	_continue.pressed.connect(_on_continue_pressed)
+	_continue.visible = GameState.has_save()
+	Audio.play_music("title")
 	_quit.pressed.connect(get_tree().quit)
 	_quit.visible = not OS.has_feature("web")  # web builds can't quit
-	_start.grab_focus()
+	(_continue if _continue.visible else _start).grab_focus()
 	_walk_hero()
 	_glitch_loop()
 
 
+func _on_continue_pressed() -> void:
+	if GameState.load_game():
+		SceneManager.change_scene(GameState.district_scene())
+
+
 func _on_start_pressed() -> void:
 	GameState.reset()
+	GameState.delete_save()
 	SceneManager.change_scene(GAME_SCENE)
 
 

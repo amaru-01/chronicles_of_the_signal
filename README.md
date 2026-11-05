@@ -34,9 +34,22 @@ A 2D Cyberpunk RPG built with **Godot 4** and **GDScript**, exported to desktop 
   </tr>
 </table>
 
-> Art is placeholder, generated for prototyping.
+> Art and audio are placeholders, generated for prototyping. The screenshots were taken in the early test room; the game now has two full districts.
 
 ---
+
+## 🎮 What's in the game
+
+Two playable districts and a short story with two endings:
+
+- **District 01 &mdash; Static Row:** learn the world swap, hacking, levers, doors and a timed gate.
+- **District 02 &mdash; The Archive:** alternating one-world walls, a three-key gate, a timed gate with a risky shortcut, and the Curator's core.
+- **Trace drones** patrol the Digital world and drain signal integrity. Swapping back is the escape.
+- **Hint system:** press **H** for a hint on the next unsolved puzzle. Each press is more specific.
+- **Story fragments**, NPC dialogue with choices, and an ending choice (restore the city's memories or keep your own).
+- **Checkpoints**, autosave and a **Continue** button on the title screen.
+- **Audio:** sound effects, a music loop per world, and volume sliders in the pause menu.
+- **Controller support** (untested on a real pad). See [md file/STORY.md](md%20file/STORY.md) for the story and design notes.
 
 ## 📖 Overview
 
@@ -47,9 +60,12 @@ Architecture:
 - **`GameState` autoload** — health, signal integrity, inventory, hacked terminals and story flags persist across scenes.
 - **`WorldLayers`** — each world is a `TileMapLayer`; toggling `enabled` swaps drawing *and* collision at once. A swap is blocked if it would leave the player inside a wall.
 - **Interactables** — everything the player can press **E** on extends `Interactable` (an `Area2D`). Set its `realm` to make it exist in only one world. Terminals, doors, NPCs and pickups are built on it.
-- **Autoloads** — `GameState` (persistent state), `SceneManager` (fade scene changes), `Dialogue` (typewriter dialogue box).
+- **Autoloads** — `GameState` (persistent state, save/load, checkpoints), `SceneManager` (fade scene changes), `Audio` (sound effects, music, volume), `Dialogue` (typewriter dialogue box and `Dialogue.ask()` choices).
+- **Districts** — every district scene extends `District` (`scenes/world/district.gd`), which provides the HUD, hints, music, checkpoints and the signal-lost reboot. A district only supplies its map, objects and hint list.
+- **Text maps** — each district's layout is a text file in `scenes/world/maps/` (`#` wall in both worlds, `.` floor, `P` wall in Physical only, `D` wall in Digital only).
+- **Puzzles** — `Terminal` (hack), `Switch` (lever, optionally timed), `Door` (needs one or more keys, never closes on the player) and `Drone` (Digital-world hazard).
 - **Hacking** — `HackMinigame` is a timed code-breaker: find the key among 8 codes using the "likeness" hint before attempts or time run out. Failing costs signal integrity; reaching 0 reboots the level.
-- **Placeholder art** — sprites and tiles in `assets/` are generated placeholders that follow fixed layouts (see `character_sprite.gd`), so real art can be dropped in over the same filenames.
+- **Placeholder art and audio** — sprites, tiles and sounds in `assets/` are generated (`tools/make_assets.py`) and follow fixed layouts and file names (see `character_sprite.gd`), so real art and audio can be dropped in over the same files.
 - **Signals over references** — systems talk through signals such as `layer_changed`.
 
 ## 📁 Project Structure
@@ -59,12 +75,15 @@ chronicles_of_the_signal/
 ├── project.godot            # Engine config, input actions, physics layer names
 ├── scenes/
 │   ├── player/              # player.tscn + player.gd
-│   ├── interactables/       # interactable.gd base + terminal, door, npc, pickup
-│   └── world/               # test_world.tscn, world_layers.gd (layer swap)
-├── scripts/autoload/        # game_state.gd, scene_manager.gd
-├── ui/                      # title, pause menu, dialogue box, hacking minigame, theme
+│   ├── interactables/       # interactable.gd base + terminal, switch, door, npc, pickup, checkpoint, exit zone
+│   ├── hazards/             # drone (Digital-world threat)
+│   └── world/               # district.gd base, district_01/02 scenes, world_layers.gd, maps/*.txt
+├── scripts/autoload/        # game_state.gd, scene_manager.gd, audio.gd
+├── ui/                      # title, end screen, pause menu, dialogue box, hacking minigame, theme
 ├── fx/ + shaders/           # screen effects: glitch pulse, scanlines, vignette
-└── assets/                  # fonts/, tiles/, sprites/ (placeholder pixel art), audio/
+├── tools/                   # make_assets.py (regenerates placeholder art and audio)
+├── md file/                 # STORY.md, TODO.md, DONE_1.md (design and progress notes)
+└── assets/                  # fonts/, tiles/, sprites/, sounds/ (placeholder art and audio)
 ```
 
 ## 🚀 Getting Started
@@ -73,7 +92,11 @@ chronicles_of_the_signal/
 2. Open Godot → **Import** → select `project.godot`.
 3. Press **F5** to run.
 
-**Controls:** WASD / arrows to move, **Space** to swap worlds, **E** interact, **Esc** pause.
+**Controls:** WASD / arrows to move, **Space** to swap worlds, **E** interact, **H** hint, **Esc** pause.
+
+**Controller:** D-pad or left stick to move, **A** interact, **X** hint, **Y** swap worlds, **Start** pause.
+
+To regenerate the placeholder art and audio: `pip install pillow numpy`, then `python tools/make_assets.py`.
 
 ### Physics layers
 
@@ -95,11 +118,15 @@ Browsers block audio until the first click or key press, so keep a title screen 
 ## 🗺 Roadmap
 
 - [x] Port project to Godot, global state, layer swap trial
-- [ ] Real tileset and District 01 maps
 - [x] Interactables, NPC dialogue, title screen, pause menu
 - [x] Terminal hacking minigame (timed code-breaker)
 - [x] Glitch shader, animated character, UI theme
-- [ ] Audio, save/load
+- [x] District 01 and District 02 with puzzles, drones, checkpoints and two endings
+- [x] Hint system, dialogue choices, audio, volume settings, save/load
+- [ ] Playtesting and balance
+- [ ] Real art, tiles and audio (replace the placeholders)
+- [ ] Key rebinding and a tested controller setup
+- [ ] Web export check in Chrome and Firefox
 - [ ] itch.io release
 
 ## 🔗 Useful Links

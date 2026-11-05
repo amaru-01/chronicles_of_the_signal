@@ -40,8 +40,10 @@ func interact(_player: Node2D) -> void:
 		HackMinigame.Result.SUCCESS:
 			GameState.hack_terminal(terminal_id)
 			_update_look()
+			Audio.sfx("hack_ok")
 			Dialogue.start("TERMINAL", ["Access granted.", "Somewhere nearby, a lock gives way."])
 		HackMinigame.Result.FAIL:
+			Audio.sfx("hack_fail")
 			Dialogue.start("TERMINAL", ["Trace detected. Signal integrity -%d%%." % fail_damage])
 			GameState.damage_signal(fail_damage)
 
