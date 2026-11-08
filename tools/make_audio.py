@@ -1,43 +1,9 @@
-"""Generates placeholder art and audio for Chronicles of the Signal.
-Run from the project root:  python tools/make_assets.py
+"""Generates the placeholder sound effects and music for Chronicles of the Signal.
+Run from the project root:  python tools/make_audio.py
 Everything it writes is original and generated, so there is no licence issue.
-Replace the outputs with real art/audio later using the same file names."""
-import colorsys, math, os, random, struct, wave
+Replace the outputs with real audio later using the same file names."""
+import math, os, random, struct, wave
 import numpy as np
-from PIL import Image, ImageDraw
-
-CYAN=(0,240,255,255); PINK=(255,60,140,255); DARK=(14,8,30,255); YEL=(255,220,60,255)
-
-# ---- sprites -------------------------------------------------------------
-def drone():
-    im=Image.new('RGBA',(64,32),(0,0,0,0)); d=ImageDraw.Draw(im)
-    for i,glow in enumerate([(255,60,140),(255,200,220)]):
-        ox=i*32
-        d.ellipse([ox+4,8,ox+27,26],fill=DARK,outline=PINK,width=2)   # body
-        d.rectangle([ox+14,3,ox+17,8],fill=PINK)                       # antenna
-        d.ellipse([ox+11,13,ox+20,22],fill=glow+(255,))                # eye
-        d.line([ox+1,16,ox+5,16],fill=PINK,width=2); d.line([ox+26,16,ox+30,16],fill=PINK,width=2)
-    im.save('assets/sprites/objects/drone.png')
-
-def lever():
-    im=Image.new('RGBA',(64,48),(0,0,0,0)); d=ImageDraw.Draw(im)
-    for i,(c,tilt) in enumerate([((120,120,150,255),-9),((0,240,255,255),9)]):
-        ox=i*32
-        d.rectangle([ox+4,30,ox+27,42],fill=DARK,outline=CYAN,width=2)   # base
-        d.line([ox+16,34,ox+16+tilt,14],fill=c,width=3)                  # handle
-        d.ellipse([ox+16+tilt-4,10,ox+16+tilt+4,18],fill=c)              # knob
-    im.save('assets/sprites/objects/switch.png')
-
-def courier():
-    im=Image.open('assets/sprites/npc/fixer_sheet.png').convert('RGBA'); px=im.load()
-    for y in range(im.height):
-        for x in range(im.width):
-            r,g,b,a=px[x,y]
-            if a==0: continue
-            h,s,v=colorsys.rgb_to_hsv(r/255,g/255,b/255)
-            r,g,b=colorsys.hsv_to_rgb((h+0.35)%1,s,v)
-            px[x,y]=(int(r*255),int(g*255),int(b*255),a)
-    im.save('assets/sprites/npc/courier_sheet.png')
 
 # ---- audio ---------------------------------------------------------------
 SR=22050
@@ -100,4 +66,4 @@ def music():
 
 if __name__=='__main__':
     random.seed(1); np.random.seed(1)
-    drone(); lever(); courier(); sfx(); music(); print('assets written')
+    sfx(); music(); print('audio written')

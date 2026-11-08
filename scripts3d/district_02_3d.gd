@@ -7,7 +7,7 @@ extends District3D
 
 func _init() -> void:
 	district_id = "3d_district_02"
-	map_path = "res://scenes/world/maps/district_02.txt"
+	map_path = "res://scenes3d/maps/district_02.txt"
 
 
 func _theme() -> Dictionary:  # cold archive: teal and ice blue

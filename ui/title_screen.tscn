@@ -1,14 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/title_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" path="res://assets/tiles/digital_tiles.png" id="2_tiles"]
-[ext_resource type="Script" path="res://scenes/player/character_sprite.gd" id="3_sprite"]
-[ext_resource type="Texture2D" path="res://assets/sprites/player/player_sheet.png" id="4_sheet"]
+[ext_resource type="Texture2D" path="res://ui/title_grid.png" id="2_tiles"]
+[ext_resource type="Texture2D" path="res://assets3d/sprites/player_3d.png" id="4_sheet"]
 [ext_resource type="PackedScene" path="res://fx/screen_fx.tscn" id="5_fx"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_floor"]
-atlas = ExtResource("2_tiles")
-region = Rect2(32, 0, 32, 32)
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -36,15 +31,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("AtlasTexture_floor")
+texture = ExtResource("2_tiles")
 expand_mode = 1
 stretch_mode = 1
 
-[node name="Hero" type="AnimatedSprite2D" parent="."]
-position = Vector2(-100, 618)
-scale = Vector2(4, 4)
-script = ExtResource("3_sprite")
-sheet = ExtResource("4_sheet")
+[node name="Hero" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(-100, 596)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("4_sheet")
+hframes = 5
+vframes = 4
+frame_coords = Vector2i(1, 2)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -83,17 +81,11 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Continue"
 
-[node name="Start3DButton" type="Button" parent="Center/VBox"]
+[node name="NewGameButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Start 3D (new)"
-
-[node name="StartButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(240, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-text = "Start 2D (classic)"
+text = "New Game"
 
 [node name="QuitButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 48)
@@ -105,8 +97,8 @@ text = "Quit"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.55, 0.65, 1)
 theme_override_font_sizes/font_size = 16
-text = "WASD / arrows: move    Space: swap worlds    E: interact    H: hint    Esc: pause
-3D adds:  J strike    K pulse    T fast travel"
+text = "WASD: move    Space: swap worlds    E: interact    J: strike    K: pulse
+H: hint    G: GPS    T: fast travel    Tab: journal    Esc: pause"
 horizontal_alignment = 1
 
 [node name="ScreenFX" parent="." instance=ExtResource("5_fx")]

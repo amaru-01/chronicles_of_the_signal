@@ -53,43 +53,45 @@ func _run() -> void:
 	_state.reset()
 	_state.delete_save()
 
-	# ---- fresh install: no Continue, 3D start offered
+	# ---- fresh install: no Continue, New Game is focused
 	var title: Node = await _title()
-	var start_3d: Button = title.get_node("Center/VBox/Start3DButton")
-	var start_2d: Button = title.get_node("Center/VBox/StartButton")
+	var new_game: Button = title.get_node("Center/VBox/NewGameButton")
 	var cont: Button = title.get_node("Center/VBox/ContinueButton")
-	_check("title: 'Start 3D' button exists and is visible on desktop", start_3d.visible and start_3d.text.contains("3D"))
-	_check("title: 'Start 2D' button still exists", start_2d.visible and start_2d.text.contains("2D"))
+	_check("title: 'New Game' button exists and is visible", new_game.visible and new_game.text == "New Game")
+	_check("title: there is no 2D start button any more", title.get_node_or_null("Center/VBox/StartButton") == null)
 	_check("title: no Continue without a save", not cont.visible)
-	_check("title: focus starts on Start 3D when there is no save", start_3d.has_focus())
+	_check("title: focus starts on New Game when there is no save", new_game.has_focus())
 
-	# ---- a 2D save -> plain Continue
+	# ---- a save from the old 2D game falls back to the hub
 	_state.current_district = "district_02"
 	_state.save_game()
 	title = await _title()
 	cont = title.get_node("Center/VBox/ContinueButton")
-	_check("title: 2D save shows plain 'Continue'", cont.visible and cont.text == "Continue")
-	_check("saved_district() reads the 2D id", _state.saved_district() == "district_02")
+	_check("title: an old save shows 'Continue'", cont.visible and cont.text == "Continue")
+	cont.pressed.emit()
+	await _wait(1.3)
+	_check("an unknown (old 2D) district resumes in the hub",
+		current_scene != null and current_scene.get("district_id") == "3d_hub")
 
-	# ---- a 3D save -> 'Continue (3D)', and it resumes the 3D district
+	# ---- a 3D save -> Continue resumes that district
 	_state.reset()
 	_state.current_district = "3d_district_02"
 	_state.save_game()
 	title = await _title()
 	cont = title.get_node("Center/VBox/ContinueButton")
-	_check("title: 3D save shows 'Continue (3D)'", cont.visible and cont.text == "Continue (3D)")
+	_check("title: a 3D save shows 'Continue'", cont.visible and cont.text == "Continue")
 	cont.pressed.emit()
 	await _wait(1.3)
-	_check("Continue (3D) resumes District 02 in 3D",
+	_check("Continue resumes District 02",
 		current_scene != null and current_scene.get("district_id") == "3d_district_02")
 
 	# ---- Start 3D: clean slate, lands in the hub, old save deleted
 	_state.flags["picked_fragment_01"] = true
 	_state.save_game()
 	title = await _title()
-	title.get_node("Center/VBox/Start3DButton").pressed.emit()
+	title.get_node("Center/VBox/NewGameButton").pressed.emit()
 	await _wait(1.3)
-	_check("Start 3D plays the intro cinematic first",
+	_check("New Game plays the intro cinematic first",
 		current_scene != null and current_scene.scene_file_path == "res://scenes3d/intro_3d.tscn")
 	var intro: Node = current_scene
 	_check("intro: starts on shot 0 and the shots are all defined", intro._shot == 0 and intro.SHOTS.size() == 7)
@@ -106,18 +108,11 @@ func _run() -> void:
 	_check("intro: marks itself as seen", _state.flags.get("intro_seen", false))
 	# (The quest log autosaves its fresh state a moment after a new game starts, so a save
 	# file may exist again. What matters is that the old progress is gone.)
-	_check("Start 3D wipes the previous progress",
+	_check("New Game wipes the previous progress",
 		not _state.flags.has("picked_fragment_01") and _state.inventory.is_empty()
 		and not str(_state.saved_district()).begins_with("district_"))
 	var spawn: Vector3 = current_scene._layers.cell_to_world(Vector2(22, 22))
-	_check("Start 3D spawns at the hub's start point", current_scene._player.global_position.distance_to(spawn) < 0.5)
-
-	# ---- Start 2D still works
-	title = await _title()
-	title.get_node("Center/VBox/StartButton").pressed.emit()
-	await _wait(1.3)
-	_check("Start 2D still loads the classic District 01",
-		current_scene != null and current_scene.scene_file_path == "res://scenes/world/district_01.tscn")
+	_check("New Game spawns at the hub's start point", current_scene._player.global_position.distance_to(spawn) < 0.5)
 
 	_state.delete_save()
 	print("\n".join(_results))

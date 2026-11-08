@@ -15,6 +15,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Chronicles of the Signal"
+config/version="0.1.0"
+config/icon="res://icon.png"
 run/main_scene="res://ui/title_screen.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -101,13 +103,9 @@ move_down={
 
 [layer_names]
 
-2d_physics/layer_1="player"
 3d_physics/layer_1="player"
-2d_physics/layer_2="world_physical"
 3d_physics/layer_2="world_physical"
-2d_physics/layer_3="world_digital"
 3d_physics/layer_3="world_digital"
-2d_physics/layer_4="interactable"
 3d_physics/layer_4="interactable"
 
 [rendering]

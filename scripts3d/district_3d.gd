@@ -22,7 +22,7 @@ const NEON_COLORS: Array[Color] = [
 ]
 
 @export var district_id: String = "3d_district_01"
-@export_file("*.txt") var map_path: String = "res://scenes/world/maps/district_01.txt"
+@export_file("*.txt") var map_path: String = "res://scenes3d/maps/district_01.txt"
 
 var _viewport: SubViewport
 var _view: TextureRect

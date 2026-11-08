@@ -2,7 +2,7 @@ class_name WorldLayers3D
 extends Node3D
 ## Builds the Physical and Digital worlds from a text map and owns the swap.
 ##
-## Same map format as the 2D game (scenes/world/maps/*.txt):
+## Map format (scenes3d/maps/*.txt):
 ##   #  wall in both worlds     .  floor in both worlds
 ##   P  wall in Physical only   D  wall in Digital only
 ## One map cell is TILE metres. Each world is a root node (visuals) plus a
@@ -27,7 +27,7 @@ const BRICK: Shader = preload("res://shaders3d/brick.gdshader")
 const WET_FLOOR: Shader = preload("res://shaders3d/wet_floor.gdshader")
 const GRID: Shader = preload("res://shaders3d/digital_grid.gdshader")
 
-@export_file("*.txt") var map_path: String = "res://scenes/world/maps/district_01.txt"
+@export_file("*.txt") var map_path: String = "res://scenes3d/maps/district_01.txt"
 
 var map_size: Vector2i = Vector2i.ZERO
 var physical_root: Node3D

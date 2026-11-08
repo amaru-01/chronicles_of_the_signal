@@ -8,7 +8,7 @@ extends District3D
 
 func _init() -> void:
 	district_id = "3d_district_01"
-	map_path = "res://scenes/world/maps/district_01.txt"
+	map_path = "res://scenes3d/maps/district_01.txt"
 
 
 func _spawn_cells() -> Dictionary:

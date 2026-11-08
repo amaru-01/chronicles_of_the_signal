@@ -1,9 +1,9 @@
 extends Control
-## End of the demo: shows a summary and offers Play again / Main menu.
+## End of the game: shows the ending and a summary, and offers Play again / Main menu.
 ## The UI is built in code so the scene file stays tiny.
 
 const TITLE_SCENE: String = "res://ui/title_screen.tscn"
-const GAME_SCENE: String = "res://scenes/world/district_01.tscn"
+const INTRO_SCENE: String = "res://scenes3d/intro_3d.tscn"
 
 
 func _ready() -> void:
@@ -28,7 +28,7 @@ func _ready() -> void:
 	box.add_child(title)
 
 	var story := Label.new()
-	story.text = "The gate opens. Beyond it, the city is still listening.\nThe Archive waits in District 02."
+	story.text = _ending_text()
 	story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(story)
 
@@ -43,7 +43,7 @@ func _ready() -> void:
 	var again := _make_button("Play again", func() -> void:
 		GameState.reset()
 		GameState.delete_save()
-		SceneManager.change_scene(GAME_SCENE)
+		SceneManager.change_scene(INTRO_SCENE)
 	)
 	var menu := _make_button("Main menu", func() -> void: SceneManager.change_scene(TITLE_SCENE))
 	box.add_child(again)
@@ -62,7 +62,16 @@ You forget your own name, and for the first time, the Signal is quiet and whole.
 		"keep":
 			return "You seal the Archive and keep what you are. The city stays silent.
 Somewhere, the Curator keeps deleting. You are the only one who remembers why."
-	return "You reached the end of the demo. The Signal is still out there."
+	return "The Signal is still out there."
+
+
+## Memory fragments only (the inventory also holds datachips and upgrades).
+func _count_fragments() -> int:
+	var count: int = 0
+	for id: String in GameState.inventory:
+		if id.begins_with("fragment_"):
+			count += 1
+	return count
 
 
 ## Real terminals only; levers (ids starting "sw_") are not counted.

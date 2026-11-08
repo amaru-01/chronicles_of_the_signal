@@ -21,8 +21,6 @@ var save_path: String = "user://dev_test_save.json" if "--script" in OS.get_cmdl
 const SAVE_VERSION: int = 1
 ## district id -> scene, used by Continue.
 const DISTRICT_SCENES: Dictionary = {
-	"district_01": "res://scenes/world/district_01.tscn",
-	"district_02": "res://scenes/world/district_02.tscn",
 	# 3D game (see scripts3d/world_map_3d.gd)
 	"3d_hub": "res://scenes3d/hub_3d.tscn",
 	"3d_district_01": "res://scenes3d/district_01_3d.tscn",
@@ -34,7 +32,7 @@ const DISTRICT_SCENES: Dictionary = {
 const MAX_SIGNAL_INTEGRITY: int = 100
 
 var current_layer: WorldLayer = WorldLayer.PHYSICAL
-var current_district: String = "district_01"
+var current_district: String = "3d_hub"
 var player_health: int = 100
 var player_signal_integrity: int = MAX_SIGNAL_INTEGRITY  # "HP" for the digital layer
 var inventory: Array[String] = []
@@ -114,7 +112,7 @@ func restore_signal() -> void:
 
 func reset() -> void:
 	current_layer = WorldLayer.PHYSICAL
-	current_district = "district_01"
+	current_district = "3d_hub"
 	player_health = 100
 	player_signal_integrity = MAX_SIGNAL_INTEGRITY
 	inventory.clear()
@@ -163,7 +161,7 @@ func load_game() -> bool:
 		return false
 	var data: Dictionary = parsed
 	reset()
-	current_district = str(data.get("district", "district_01"))
+	current_district = str(data.get("district", "3d_hub"))
 	player_health = int(data.get("health", 100))
 	player_signal_integrity = maxi(1, int(data.get("integrity", MAX_SIGNAL_INTEGRITY)))
 	deaths = int(data.get("deaths", 0))
@@ -184,7 +182,7 @@ func load_game() -> bool:
 
 
 ## The district id stored in the save file ("" if there is no readable save). Lets the
-## title screen say whether Continue resumes the 2D or the 3D game.
+## tests check which district a save belongs to.
 func saved_district() -> String:
 	if not has_save():
 		return ""
@@ -200,7 +198,7 @@ func delete_save() -> void:
 
 
 func district_scene() -> String:
-	return DISTRICT_SCENES.get(current_district, DISTRICT_SCENES["district_01"])
+	return DISTRICT_SCENES.get(current_district, DISTRICT_SCENES["3d_hub"])
 
 
 func _checkpoints_to_json() -> Dictionary:
