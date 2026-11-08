@@ -1,0 +1,25 @@
+# Serves the Godot Web export committed in web/ (export path set in export_presets.cfg).
+# No build step: export from the Godot editor, commit web/, push to GitHub.
+[build]
+  publish = "web"
+  command = ""
+
+# Cross-origin isolation: required for thread-enabled Godot web builds,
+# harmless for single-threaded ones.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.pck"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+    Cache-Control = "public, max-age=0, must-revalidate"
