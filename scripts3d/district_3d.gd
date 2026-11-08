@@ -39,6 +39,8 @@ var _rain: GPUParticles3D
 var _fx: ScreenFX
 var _hint_tier: Dictionary = {}
 var _minimap: Minimap3D
+var _gps: Gps3D
+var _gps_on: bool = true
 var _hud: CanvasLayer
 var _travel_menu: FastTravelMenu3D
 var _weather_tween: Tween
@@ -77,6 +79,7 @@ func _ready() -> void:
 	_journal = JournalMenu3D.new()
 	add_child(_journal)
 	_build_minimap()
+	_build_gps()
 
 	_layers.swap_blocked.connect(_on_swap_blocked)
 	_layers.layer_changed.connect(_on_layer_changed)
@@ -100,6 +103,7 @@ func _process(delta: float) -> void:
 		_poll_quests()
 	_regenerate_signal(delta)
 	_update_exit_labels()
+	_update_gps()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -123,6 +127,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("pulse"):
 		get_viewport().set_input_as_handled()
 		_player.fire_pulse()
+	elif event.is_action_pressed("gps"):
+		get_viewport().set_input_as_handled()
+		_gps_on = not _gps_on
+		_show_notice("GPS on." if _gps_on else "GPS off.")
 	elif event.is_action_pressed("fast_travel"):
 		get_viewport().set_input_as_handled()
 		_travel_menu.open()
@@ -133,7 +141,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # --- exit labels (full-resolution text pinned to 3D doorways) ------------------------
 
-const LABEL_RANGE: float = 16.0
+const LABEL_RANGE: float = 10.0
 var _exit_labels: Dictionary = {}  # ExitZone3D -> Label
 
 
@@ -165,7 +173,7 @@ func _update_exit_labels() -> void:
 		var visible_now: bool = not camera.is_position_behind(anchor) and distance < LABEL_RANGE
 		label.visible = visible_now
 		if visible_now:
-			label.modulate.a = clampf((LABEL_RANGE - distance) / 5.0, 0.0, 1.0)
+			label.modulate.a = clampf((LABEL_RANGE - distance) / 3.0, 0.0, 1.0)
 			var screen: Vector2 = _view.global_position + camera.unproject_position(anchor) * scale
 			label.position = screen - label.size * 0.5
 
@@ -217,11 +225,12 @@ func _build_world() -> void:
 	_layers.map_path = map_path
 	_viewport.add_child(_layers)
 
+	var theme: Dictionary = _theme()
 	_env_physical = _make_environment(
-		Color(0.02, 0.01, 0.05), Color(0.28, 0.3, 0.6), 1.2, Color(0.08, 0.06, 0.2), 0.01, 0.9
+		Color(0.02, 0.01, 0.05), theme["ambient"], 1.2, theme["fog"], 0.01, 0.9
 	)
 	_env_digital = _make_environment(
-		Color(0.01, 0.0, 0.06), Color(0.2, 0.1, 0.5), 0.6, Color(0.12, 0.02, 0.32), 0.008, 1.1
+		Color(0.01, 0.0, 0.06), Color(0.2, 0.1, 0.5), 0.6, theme["fog_digital"], 0.008, 1.1
 	)
 	_world_env = WorldEnvironment.new()
 	_world_env.environment = _env_physical
@@ -246,6 +255,7 @@ func _build_world() -> void:
 	_build_physical_dressing(_layers.physical_root)
 	_build_digital_dressing(_layers.digital_root)
 	_populate()
+	_build_props()
 	_start_weather()
 	GameState.save_game()  # autosave on entering a district: Continue resumes here
 
@@ -315,8 +325,10 @@ func _make_rain() -> GPUParticles3D:
 
 ## Neon signs, lights and bins: only exist in the Physical world.
 func _build_physical_dressing(root: Node3D) -> void:
+	var theme: Dictionary = _theme()
+	var neon: Array = theme["neon"]
 	var moon := DirectionalLight3D.new()
-	moon.light_color = Color(0.4, 0.45, 0.9)
+	moon.light_color = theme["moon"]
 	moon.light_energy = 0.8
 	moon.rotation_degrees = Vector3(-62.0, 25.0, 0.0)
 	root.add_child(moon)
@@ -345,11 +357,13 @@ func _build_physical_dressing(root: Node3D) -> void:
 				_layers.map_size.x * (gx + 0.5) / 3.0, _layers.map_size.y * (gy + 0.5) / 2.0
 			)
 			var lamp := OmniLight3D.new()
-			lamp.light_color = NEON_COLORS[lamp_index % NEON_COLORS.size()]
+			lamp.light_color = neon[lamp_index % neon.size()]
 			lamp.light_energy = 3.2
 			lamp.omni_range = 13.0
 			lamp.position = _layers.cell_to_world(_nearest_floor(sample)) + Vector3(0.0, 2.6, 0.0)
 			root.add_child(lamp)
+			if lamp_index % 3 == 1:
+				_flicker(lamp)
 			lamp_index += 1
 
 	# Wall dressing on the south faces (the faces the low camera sees): neon signs,
@@ -371,7 +385,7 @@ func _build_physical_dressing(root: Node3D) -> void:
 		last_x = cell.x
 		var wall_x: float = (cell.x + 0.5) * tile
 		var face_z: float = (cell.y + 1) * tile
-		var color: Color = NEON_COLORS[rng.randi() % NEON_COLORS.size()]
+		var color: Color = neon[rng.randi() % neon.size()]
 		var kind: float = rng.randf()
 		if kind < 0.3:
 			# A door with a lit lintel sign.
@@ -420,6 +434,138 @@ func _build_physical_dressing(root: Node3D) -> void:
 		_layers.register_cutaway(
 			bin, cell.x * tile, (cell.x + 1) * tile, (cell.y - 1) * tile, GameState.WorldLayer.PHYSICAL
 		)
+
+
+## A faulty neon lamp: brief dips in brightness at irregular intervals.
+func _flicker(lamp: OmniLight3D) -> void:
+	var base: float = lamp.light_energy
+	var tween: Tween = lamp.create_tween().set_loops()
+	tween.tween_interval(randf_range(1.5, 4.0))
+	tween.tween_property(lamp, "light_energy", base * 0.25, 0.05)
+	tween.tween_property(lamp, "light_energy", base, 0.06)
+	tween.tween_property(lamp, "light_energy", base * 0.45, 0.04)
+	tween.tween_property(lamp, "light_energy", base, 0.08)
+
+
+## Spots that props must keep clear: spawn points and everything the player interacts with.
+func _reserved_positions() -> Array[Vector3]:
+	var reserved: Array[Vector3] = []
+	for cell: Vector2 in _spawn_cells().values():
+		reserved.append(_layers.cell_to_world(cell))
+	for group: String in ["interactable3d", "exit3d", "beacon3d", "enemy3d"]:
+		for node: Node in get_tree().get_nodes_in_group(group):
+			if node is Node3D:
+				reserved.append((node as Node3D).global_position)
+	reserved.append(_player.global_position)
+	return reserved
+
+
+## Set dressing on floor cells that touch a wall: crates, barrels, vents (real world) and
+## server racks (Grid). Purely visual, so they are kept against walls and away from
+## spawns, exits, terminals, beacons and enemies. Runs after _populate().
+func _build_props() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = district_id.hash() + 7
+	var tile: float = WorldLayers3D.TILE
+	var reserved: Array[Vector3] = _reserved_positions()
+	var neon: Array = _theme()["neon"]
+
+	var crate_material := StandardMaterial3D.new()
+	crate_material.albedo_color = Color(0.1, 0.08, 0.06)
+	crate_material.roughness = 0.7
+	var barrel_material := StandardMaterial3D.new()
+	barrel_material.albedo_color = Color(0.07, 0.1, 0.12)
+	barrel_material.metallic = 0.6
+	barrel_material.roughness = 0.4
+	var vent_material := StandardMaterial3D.new()
+	vent_material.albedo_color = Color(0.03, 0.03, 0.05)
+	vent_material.metallic = 0.7
+	var rack_material := StandardMaterial3D.new()
+	rack_material.albedo_color = Color(0.03, 0.02, 0.07)
+	rack_material.metallic = 0.5
+
+	var placed_physical: int = 0
+	var placed_digital: int = 0
+	for cy: int in range(1, _layers.map_size.y - 1):
+		for cx: int in range(1, _layers.map_size.x - 1):
+			if _layers.char_at(cx, cy) != "." or _layers.char_at(cx, cy - 1) != "#":
+				continue
+			var spot: Vector3 = _layers.cell_to_world(Vector2(cx, cy))
+			var blocked: bool = false
+			for r: Vector3 in reserved:
+				if Vector2(r.x - spot.x, r.z - spot.z).length() < 3.2:
+					blocked = true
+					break
+			if blocked:
+				continue
+			var roll: float = rng.randf()
+			var back_z: float = cy * tile + 0.7  # tucked against the wall behind
+			var x0: float = cx * tile
+			var x1: float = (cx + 1) * tile
+			var wall_z: float = (cy - 1) * tile
+			if roll < 0.07 and placed_physical < 40:
+				placed_physical += 1
+				var crates := Node3D.new()
+				crates.add_to_group("prop3d")
+				crates.position = Vector3((cx + 0.5) * tile + rng.randf_range(-0.3, 0.3), 0.0, back_z)
+				var low := _box(Vector3(1.1, 0.8, 0.9), crate_material)
+				low.position.y = 0.4
+				crates.add_child(low)
+				if rng.randf() < 0.6:
+					var top := _box(Vector3(0.8, 0.7, 0.7), crate_material)
+					top.position = Vector3(rng.randf_range(-0.1, 0.1), 1.15, 0.0)
+					top.rotation.y = rng.randf_range(-0.4, 0.4)
+					crates.add_child(top)
+				var strip := _box(Vector3(1.12, 0.06, 0.92), _neon_material(neon[rng.randi() % neon.size()], 2.0))
+				strip.position.y = 0.8
+				crates.add_child(strip)
+				_layers.physical_root.add_child(crates)
+				_layers.register_cutaway(crates, x0, x1, wall_z, GameState.WorldLayer.PHYSICAL)
+			elif roll < 0.12 and placed_physical < 40:
+				placed_physical += 1
+				var barrel := MeshInstance3D.new()
+				barrel.add_to_group("prop3d")
+				var cylinder := CylinderMesh.new()
+				cylinder.top_radius = 0.38
+				cylinder.bottom_radius = 0.38
+				cylinder.height = 1.0
+				cylinder.radial_segments = 10
+				barrel.mesh = cylinder
+				barrel.material_override = barrel_material
+				barrel.position = Vector3((cx + 0.5) * tile + rng.randf_range(-0.4, 0.4), 0.5, back_z)
+				var band := MeshInstance3D.new()
+				var ring := CylinderMesh.new()
+				ring.top_radius = 0.4
+				ring.bottom_radius = 0.4
+				ring.height = 0.08
+				ring.radial_segments = 10
+				band.mesh = ring
+				band.material_override = _neon_material(neon[rng.randi() % neon.size()], 2.4)
+				band.position.y = 0.25
+				barrel.add_child(band)
+				_layers.physical_root.add_child(barrel)
+				_layers.register_cutaway(barrel, x0, x1, wall_z, GameState.WorldLayer.PHYSICAL)
+			elif roll < 0.16:
+				# A floor vent: flat decoration, never in the way.
+				var vent := _box(Vector3(1.2, 0.04, 0.8), vent_material)
+				vent.add_to_group("prop3d")
+				vent.position = Vector3((cx + 0.5) * tile, 0.03, cy * tile + 0.9)
+				_layers.physical_root.add_child(vent)
+			elif roll < 0.24 and placed_digital < 24:
+				placed_digital += 1
+				var rack := Node3D.new()
+				rack.add_to_group("prop3d")
+				rack.position = Vector3((cx + 0.5) * tile, 0.0, back_z)
+				var body := _box(Vector3(0.9, 2.2, 0.6), rack_material)
+				body.position.y = 1.1
+				rack.add_child(body)
+				for i: int in 4:
+					var led_color: Color = Color(0.1, 0.9, 1.0) if i % 2 == 0 else Color(0.85, 0.3, 1.0)
+					var led := _box(Vector3(0.7, 0.05, 0.02), _neon_material(led_color, 2.6))
+					led.position = Vector3(0.0, 0.5 + i * 0.45, 0.31)
+					rack.add_child(led)
+				_layers.digital_root.add_child(rack)
+				_layers.register_cutaway(rack, x0, x1, wall_z, GameState.WorldLayer.DIGITAL)
 
 
 func _box(size: Vector3, material: Material) -> MeshInstance3D:
@@ -705,7 +851,7 @@ func _on_target_changed(target: Interactable3D) -> void:
 
 func _update_prompt(target: Interactable3D) -> void:
 	var interact: String = "[E] %s" % target.prompt_text if target else "[E] INTERACT"
-	_prompt_label.text = "%s\n[J] STRIKE  [K] PULSE\n[H] HINT  [T] TRAVEL  [TAB] JOURNAL" % interact
+	_prompt_label.text = "%s\n[J] STRIKE  [K] PULSE\n[H] HINT  [T] TRAVEL  [G] GPS  [TAB] JOURNAL" % interact
 	_prompt_label.modulate = Color.WHITE if target else Color(1, 1, 1, 0.55)
 
 
@@ -722,6 +868,7 @@ func _ensure_input_actions() -> void:
 	_add_action("attack", KEY_J, MOUSE_BUTTON_LEFT, JOY_BUTTON_B)
 	_add_action("pulse", KEY_K, MOUSE_BUTTON_RIGHT, JOY_BUTTON_RIGHT_SHOULDER)  # X is "hint"
 	_add_action("fast_travel", KEY_T, MOUSE_BUTTON_NONE, JOY_BUTTON_LEFT_SHOULDER)
+	_add_action("gps", KEY_G, MOUSE_BUTTON_NONE, JOY_BUTTON_RIGHT_STICK)
 	_add_action("journal", KEY_TAB, MOUSE_BUTTON_NONE, JOY_BUTTON_BACK)
 
 
@@ -740,6 +887,95 @@ func _add_action(action: String, key_code: Key, mouse_button: MouseButton, pad_b
 		var pad := InputEventJoypadButton.new()
 		pad.button_index = pad_button
 		InputMap.action_add_event(action, pad)
+
+
+## Override to restyle a district: neon sign/lamp colours, ambient and fog tints.
+func _theme() -> Dictionary:
+	return {
+		"neon": NEON_COLORS,
+		"ambient": Color(0.28, 0.3, 0.6),
+		"fog": Color(0.08, 0.06, 0.2),
+		"fog_digital": Color(0.12, 0.02, 0.32),
+		"moon": Color(0.4, 0.45, 0.9),
+	}
+
+
+# --- GPS ---------------------------------------------------------------------------
+
+## Override: where the player should go next, as {"pos": Vector3, "label": String}, or an
+## empty Dictionary when there is nowhere to point. Use the _goal* helpers.
+func _gps_target() -> Dictionary:
+	return {}
+
+
+func _goal(pos: Vector3, label: String) -> Dictionary:
+	return {"pos": pos, "label": label}
+
+
+func _goal_px(pixel: Vector2, label: String) -> Dictionary:
+	return _goal(_px_offset(pixel), label)
+
+
+func _goal_cell(cell: Vector2, label: String) -> Dictionary:
+	return _goal(_layers.cell_to_world(cell), label)
+
+
+## The goal in `goals` (each from a _goal* helper) closest to the player.
+func _nearest_goal(goals: Array) -> Dictionary:
+	var best: Dictionary = {}
+	var best_distance: float = INF
+	for goal: Dictionary in goals:
+		var distance: float = _player.global_position.distance_to(goal["pos"])
+		if distance < best_distance:
+			best_distance = distance
+			best = goal
+	return best
+
+
+## Point at the doorway that leads to `target` (an ExitZone3D in this district).
+func _exit_goal(target: String, label: String) -> Dictionary:
+	for node: Node in get_tree().get_nodes_in_group("exit3d"):
+		var zone := node as ExitZone3D
+		if zone != null and zone.target_district == target:
+			return _goal(zone.global_position, label)
+	return {}
+
+
+func _build_gps() -> void:
+	_gps = Gps3D.new()
+	_gps.name = "Gps"
+	_hud.add_child(_gps)
+	_hud.move_child(_gps, 0)
+
+
+const GPS_ARRIVED: float = 2.6
+
+
+func _update_gps() -> void:
+	if _gps == null or _rig == null or _rig.camera == null:
+		return
+	var goal: Dictionary = {}
+	if _gps_on and not Dialogue.is_active and not GameState.minigame_active:
+		goal = _gps_target()
+	_minimap.gps_target = goal.get("pos", null)
+	if goal.is_empty():
+		_gps.hide_arrow()
+		return
+	var to: Vector3 = goal["pos"] - _player.global_position
+	to.y = 0.0
+	if to.length() < GPS_ARRIVED:
+		_gps.hide_arrow()
+		return
+	# Direction on screen: project the player and a point 2 m towards the goal.
+	var camera: Camera3D = _rig.camera
+	var chest: Vector3 = _player.global_position + Vector3(0.0, 1.0, 0.0)
+	var from_screen: Vector2 = camera.unproject_position(chest)
+	var ahead_screen: Vector2 = camera.unproject_position(chest + to.normalized() * 2.0)
+	var screen_dir: Vector2 = ahead_screen - from_screen
+	screen_dir = Vector2.UP if screen_dir.length() < 0.01 else screen_dir.normalized()
+	var scale: Vector2 = _view.size / Vector2(VIEW_SIZE)
+	var centre: Vector2 = _view.global_position + from_screen * scale
+	_gps.show_arrow(centre, screen_dir, "%d m  %s" % [roundi(to.length()), goal["label"]])
 
 
 # --- hooks and helpers for district subclasses -------------------------------------

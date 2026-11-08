@@ -15,6 +15,14 @@ func _init() -> void:
 	map_path = "res://scenes3d/maps/district_03.txt"
 
 
+func _theme() -> Dictionary:  # the market: loud magenta, orange and yellow
+	return {
+		"neon": [Color(1.0, 0.15, 0.6), Color(1.0, 0.6, 0.1), Color(1.0, 0.9, 0.2), Color(0.1, 0.9, 1.0), Color(0.9, 0.2, 1.0)] as Array[Color],
+		"ambient": Color(0.4, 0.28, 0.5), "fog": Color(0.18, 0.05, 0.14),
+		"fog_digital": Color(0.25, 0.03, 0.3), "moon": Color(0.7, 0.4, 0.8),
+	}
+
+
 func _spawn_cells() -> Dictionary:
 	return {"start": Vector2(3, 15), "from_hub": Vector2(3, 15)}
 
@@ -70,6 +78,21 @@ func _populate() -> void:
 	_add_beacon(Vector2(22, 15))
 	_add_beacon(Vector2(43, 15))
 	_add_exit(Vector2(2, 3), WorldMap3D.HUB, "from_d03", "VANTAGE PLAZA")
+
+
+func _gps_target() -> Dictionary:
+	if not GameState.is_hacked("sw_market"):
+		return _goal_cell(Vector2(16, 15), "Lever booth (Grid walls)")
+	if not (GameState.is_hacked("term_m1") and GameState.is_hacked("term_m2")):
+		var open: Array = []
+		if not GameState.is_hacked("term_m1"):
+			open.append(_goal_cell(Vector2(29, 8), "North booth terminal"))
+		if not GameState.is_hacked("term_m2"):
+			open.append(_goal_cell(Vector2(29, 21), "South booth terminal"))
+		return _nearest_goal(open)
+	if not GameState.inventory.has("fragment_05"):
+		return _goal_px(Vector2(50.5 * 32.0, 15.5 * 32.0), "Memory fragment in the vault")
+	return _exit_goal(WorldMap3D.HUB, "Back to the plaza")
 
 
 func _objectives() -> Array[Dictionary]:

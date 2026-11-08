@@ -17,6 +17,14 @@ func _init() -> void:
 	map_path = "res://scenes3d/maps/relay_tower.txt"
 
 
+func _theme() -> Dictionary:  # the Curator's seat: crimson and violet
+	return {
+		"neon": [Color(1.0, 0.15, 0.25), Color(0.7, 0.15, 1.0), Color(1.0, 0.4, 0.1), Color(1.0, 0.2, 0.6)] as Array[Color],
+		"ambient": Color(0.32, 0.2, 0.42), "fog": Color(0.16, 0.02, 0.1),
+		"fog_digital": Color(0.25, 0.02, 0.22), "moon": Color(0.6, 0.3, 0.6),
+	}
+
+
 func _spawn_cells() -> Dictionary:
 	return {"start": Vector2(3, 31), "from_hub": Vector2(3, 31)}
 
@@ -43,6 +51,14 @@ func _populate() -> void:
 	_boss.phase_changed.connect(_on_boss_phase)
 	_boss.deflected.connect(_on_boss_deflected)
 	_boss.defeated.connect(_on_boss_defeated)
+
+
+func _gps_target() -> Dictionary:
+	if not GameState.is_hacked("term_tower"):
+		return _goal_px(Vector2(10.5 * 32.0, 5.5 * 32.0), "Gate terminal (via the Grid)")
+	if _boss != null and is_instance_valid(_boss) and not GameState.flags.get("curator_defeated", false):
+		return _goal(_boss.global_position, "The Curator")
+	return {}
 
 
 func _objectives() -> Array[Dictionary]:

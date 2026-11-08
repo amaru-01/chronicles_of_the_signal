@@ -70,6 +70,16 @@ func _populate() -> void:
 	)
 
 
+func _gps_target() -> Dictionary:
+	if not GameState.is_hacked("term_gate"):
+		return _exit_goal("3d_district_01", "Static Row: start the trail")
+	if not GameState.is_hacked("term_core"):
+		return _exit_goal("3d_district_02", "The Archive")
+	if not GameState.flags.get("curator_defeated", false):
+		return _exit_goal("3d_relay_tower", "Relay Tower: face the Curator")
+	return {}
+
+
 func _objectives() -> Array[Dictionary]:
 	return [
 		{

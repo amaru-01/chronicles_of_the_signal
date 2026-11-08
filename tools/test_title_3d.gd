@@ -42,6 +42,13 @@ func _wait(seconds: float) -> void:
 	await create_timer(seconds).timeout
 
 
+func _key(action: String) -> InputEventAction:
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = true
+	return event
+
+
 func _run() -> void:
 	_state.reset()
 	_state.delete_save()
@@ -82,7 +89,21 @@ func _run() -> void:
 	title = await _title()
 	title.get_node("Center/VBox/Start3DButton").pressed.emit()
 	await _wait(1.3)
-	_check("Start 3D loads the hub", current_scene != null and current_scene.get("district_id") == "3d_hub")
+	_check("Start 3D plays the intro cinematic first",
+		current_scene != null and current_scene.scene_file_path == "res://scenes3d/intro_3d.tscn")
+	var intro: Node = current_scene
+	_check("intro: starts on shot 0 and the shots are all defined", intro._shot == 0 and intro.SHOTS.size() == 7)
+	intro._unhandled_input(_key("ui_accept"))  # first press completes the typed line
+	_check("intro: Enter finishes the line being typed", intro._chars >= str(intro.SHOTS[0]["text"]).length())
+	intro._unhandled_input(_key("ui_accept"))  # second press moves on (after the fade)
+	await _wait(1.2)
+	_check("intro: Enter moves to the next shot", intro._shot == 1)
+	intro._unhandled_input(_key("ui_cancel"))
+	_check("intro: Esc skips ahead to the controls card", intro._shot == intro.SHOTS.size() - 1)
+	intro._unhandled_input(_key("ui_accept"))
+	await _wait(2.5)
+	_check("intro: finishing it loads the hub", current_scene != null and current_scene.get("district_id") == "3d_hub")
+	_check("intro: marks itself as seen", _state.flags.get("intro_seen", false))
 	# (The quest log autosaves its fresh state a moment after a new game starts, so a save
 	# file may exist again. What matters is that the old progress is gone.)
 	_check("Start 3D wipes the previous progress",

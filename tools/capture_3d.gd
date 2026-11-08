@@ -12,6 +12,7 @@ var _log: PackedStringArray = PackedStringArray()
 
 
 func _initialize() -> void:
+	root.get_node("GameState").save_path = "user://dev_test_save.json"  # never touch the real save
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	_out = args[0] if args.size() > 0 else "."
 	_scene = (load("res://scenes3d/district_01_3d.tscn") as PackedScene).instantiate()

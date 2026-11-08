@@ -11,6 +11,8 @@ var _layers: WorldLayers3D
 var _player: Node3D
 var _textures: Dictionary = {}  # WorldLayer -> ImageTexture
 var _timer: float = 0.0
+## World position of the GPS goal (Vector3) or null; drawn as a pulsing green diamond.
+var gps_target: Variant = null
 
 
 func setup(layers: WorldLayers3D, player: Node3D) -> void:
@@ -52,6 +54,13 @@ func _draw() -> void:
 		var enemy := node as Enemy3D
 		if enemy and enemy.active:
 			_dot(origin, enemy, Color(1.0, 0.25, 0.3), 3)
+	if gps_target is Vector3:
+		var goal: Vector3 = gps_target
+		var gp := origin + Vector2(goal.x, goal.z) / WorldLayers3D.TILE * CELL_PX
+		var r: float = 4.0 + sin(Time.get_ticks_msec() / 150.0) * 1.2
+		draw_colored_polygon(PackedVector2Array([
+			gp + Vector2(0, -r), gp + Vector2(r, 0), gp + Vector2(0, r), gp + Vector2(-r, 0)]),
+			Color(0.35, 1.0, 0.55))
 	if is_instance_valid(_player):
 		_dot(origin, _player, Color.WHITE, 5)
 

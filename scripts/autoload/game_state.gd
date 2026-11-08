@@ -15,7 +15,9 @@ enum WorldLayer { PHYSICAL, DIGITAL }
 
 const SAVE_PATH: String = "user://save.json"
 ## Where saves go. Dev tests point this at a throwaway file so they never touch a real save.
-var save_path: String = SAVE_PATH
+## A run started with --script is a dev tool (tests, screenshot captures), never a real
+## player, so it defaults to the throwaway file and cannot overwrite a real save.
+var save_path: String = "user://dev_test_save.json" if "--script" in OS.get_cmdline_args() else SAVE_PATH
 const SAVE_VERSION: int = 1
 ## district id -> scene, used by Continue.
 const DISTRICT_SCENES: Dictionary = {

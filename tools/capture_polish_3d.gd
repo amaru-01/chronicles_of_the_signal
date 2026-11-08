@@ -42,6 +42,14 @@ func _process(_delta: float) -> bool:
 			_scene._player.global_position = e.global_position + Vector3(0.0, 0.0, 4.5)
 	if _frame == 40:
 		root.get_texture().get_image().save_png("%s/%s.png" % [_out, SHOTS[_index][1]])
+		# Second view: the middle of the map, where walls and props are.
+		var props: Array = get_nodes_in_group("prop3d")
+		print("%s: %d props" % [SHOTS[_index][1], props.size()])
+		if props.size() > 0:
+			var prop: Node3D = props[props.size() / 2]
+			_scene._player.global_position = prop.global_position + Vector3(0.0, -prop.global_position.y, 9.0)
+	if _frame == 80:
+		root.get_texture().get_image().save_png("%s/%s_mid.png" % [_out, SHOTS[_index][1]])
 		_index += 1
 		if _index >= SHOTS.size():
 			root.get_node("GameState").delete_save()

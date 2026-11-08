@@ -10,6 +10,14 @@ func _init() -> void:
 	map_path = "res://scenes/world/maps/district_02.txt"
 
 
+func _theme() -> Dictionary:  # cold archive: teal and ice blue
+	return {
+		"neon": [Color(0.1, 0.9, 0.9), Color(0.3, 0.6, 1.0), Color(0.6, 0.4, 1.0), Color(0.2, 1.0, 0.6)] as Array[Color],
+		"ambient": Color(0.2, 0.34, 0.55), "fog": Color(0.03, 0.1, 0.16),
+		"fog_digital": Color(0.02, 0.1, 0.3), "moon": Color(0.35, 0.6, 0.9),
+	}
+
+
 func _spawn_cells() -> Dictionary:
 	return {
 		"start": Vector2(2, 15),
@@ -88,6 +96,25 @@ func _populate() -> void:
 	_add_beacon(Vector2(58.5, 15))
 	_add_exit(Vector2(2, 5), WorldMap3D.HUB, "from_d02", "VANTAGE PLAZA")
 	_add_exit(Vector2(2, 25), "3d_district_01", "from_d02", "STATIC ROW")
+
+
+func _gps_target() -> Dictionary:
+	if not GameState.is_hacked("term_arch1"):
+		return _goal_px(Vector2(560, 464), "Terminal at the end of the shelf hall")
+	var keys: Array = []
+	if not GameState.is_hacked("term_r1"):
+		keys.append(_goal_px(Vector2(752, 144), "Key terminal (north-west)"))
+	if not GameState.is_hacked("term_r2"):
+		keys.append(_goal_px(Vector2(784, 784), "Key terminal (south-west room)"))
+	if not GameState.is_hacked("term_r3"):
+		keys.append(_goal_px(Vector2(1072, 784), "Key terminal (south-east room)"))
+	if not keys.is_empty():
+		return _nearest_goal(keys)
+	if not GameState.is_hacked("sw_wall"):
+		return _goal_px(Vector2(1392, 336), "Grid lever: then run for the gate")
+	if not GameState.is_hacked("term_core"):
+		return _goal_px(Vector2(1936, 464), "The Curator's core (Grid)")
+	return _exit_goal(WorldMap3D.HUB, "Back to the plaza (Relay Tower next)")
 
 
 func _objectives() -> Array[Dictionary]:

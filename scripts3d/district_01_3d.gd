@@ -96,6 +96,23 @@ func _populate() -> void:
 	_add_exit(Vector2(46, 9), "3d_district_02", "from_d01", "THE ARCHIVE")
 
 
+func _gps_target() -> Dictionary:
+	if not GameState.flags.get("talked_fixer", false):
+		return _goal_px(Vector2(176, 176), "Talk to the Fixer")
+	if not GameState.is_hacked("term_gate"):
+		return _goal_px(Vector2(976, 304), "Gate terminal (cross in the Grid)")
+	if not (GameState.is_hacked("term_relay") and GameState.is_hacked("term_south")):
+		var open: Array = []
+		if not GameState.is_hacked("term_relay"):
+			open.append(_goal_px(Vector2(880, 176), "Relay terminal"))
+		if not GameState.is_hacked("term_south"):
+			open.append(_goal_px(Vector2(912, 592), "South terminal"))
+		return _nearest_goal(open)
+	if not GameState.is_hacked("sw_timed"):
+		return _goal_px(Vector2(1232, 176), "Grid lever: then run for the gate")
+	return _exit_goal("3d_district_02", "The Archive")
+
+
 func _objectives() -> Array[Dictionary]:
 	return [
 		{

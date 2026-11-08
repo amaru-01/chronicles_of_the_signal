@@ -9,6 +9,7 @@ var _out: String = "."
 
 
 func _initialize() -> void:
+	root.get_node("GameState").save_path = "user://dev_test_save.json"  # never touch the real save
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.size() > 0:
 		_out = args[0]

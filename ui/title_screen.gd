@@ -5,6 +5,7 @@ extends Control
 const GAME_SCENE: String = "res://scenes/world/district_01.tscn"
 ## The 3D game starts in the hub (see scripts3d/world_map_3d.gd).
 const GAME_3D_DISTRICT: String = "3d_hub"
+const INTRO_3D_SCENE: String = "res://scenes3d/intro_3d.tscn"
 const HERO_START_X: float = -100.0
 const HERO_END_X: float = 1380.0
 
@@ -52,7 +53,8 @@ func _on_start_pressed() -> void:
 func _on_start_3d_pressed() -> void:
 	GameState.reset()
 	GameState.delete_save()
-	WorldMap3D.travel(GAME_3D_DISTRICT, "start")
+	# The opening cinematic plays first; it hands over to the hub when it ends.
+	SceneManager.change_scene(INTRO_3D_SCENE)
 
 
 ## The runner crosses the bottom of the screen forever.
