@@ -41,6 +41,7 @@ var _cut_items: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	add_to_group("layers3d")
 	_load_map()
 	physical_root = _build_world(GameState.WorldLayer.PHYSICAL)
 	digital_root = _build_world(GameState.WorldLayer.DIGITAL)

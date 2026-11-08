@@ -7,6 +7,7 @@ in assets3d/sprites/ with hand-made art later, keeping the same layouts:
                                 columns = [idle, walk1..walk4]
                                 rows    = [down(front), left, right, up(back)]
   drone_3d.png                : 2 frames of 56x40 side by side
+  enforcer_3d.png             : 2 walk frames of 56x80 side by side
   terminal_3d.png             : 2 frames of 40x56 (locked, hacked)
 
 Scale: 1 sprite pixel = 2.5 cm in the 3D scene, so an 80 px character is 2 m tall and
@@ -198,6 +199,35 @@ def drone(path):
     im.save(path)
 
 
+def enforcer(path):
+    """Armoured riot robot, 2 frames of 56x80 (walk). Melee-proof; weak to the hack pulse."""
+    red = (255, 60, 60)
+    im = Image.new("RGBA", (112, 80), (0, 0, 0, 0))
+    for f in range(2):
+        fr = Image.new("RGBA", (56, 80), (0, 0, 0, 0))
+        d = ImageDraw.Draw(fr)
+        lift = 3 * f
+        for i, x in enumerate((17, 33)):
+            up = lift if i == 0 else 3 - lift
+            rect(d, x, 56, x + 7, 73 - up, (34, 38, 58), red)
+            rect(d, x - 1, 73 - up, x + 8, 78 - up, (16, 16, 28), red)
+        rect(d, 11, 25, 45, 58, (52, 60, 88), red)                      # torso armour
+        rect(d, 14, 28, 42, 34, (70, 80, 112))                           # chest plate highlight
+        rect(d, 24, 38, 32, 46, (60, 10, 14), red)                       # core light
+        rect(d, 26, 40, 30, 44, red)
+        rect(d, 4, 22, 16, 36, (66, 76, 108), red)                       # shoulder guards
+        rect(d, 40, 22, 52, 36, (66, 76, 108), red)
+        rect(d, 5, 36, 13, 58, (40, 46, 70), red)                        # arms
+        rect(d, 43, 36, 51, 58, (40, 46, 70), red)
+        rect(d, 47, 54, 51, 74, (30, 30, 44), (255, 170, 40))            # stun baton
+        d.line([49, 74, 49, 78], fill=c((255, 170, 40)), width=2)
+        d.ellipse([17, 4, 39, 26], fill=c((58, 66, 96)), outline=c(red))  # helmet
+        rect(d, 20, 12, 36, 18, (24, 6, 10), red)                        # visor slit
+        rect(d, 22 + f * 3, 14, 28 + f * 3, 16, (255, 200, 200))
+        im.paste(outline(fr), (f * 56, 0))
+    im.save(path)
+
+
 def terminal(path):
     im = Image.new("RGBA", (80, 56), (0, 0, 0, 0))
     for f in range(2):
@@ -224,5 +254,6 @@ if __name__ == "__main__":
     sheet(RUNNER, "assets3d/sprites/player_3d.png")
     sheet(FIXER, "assets3d/sprites/fixer_3d.png")
     drone("assets3d/sprites/drone_3d.png")
+    enforcer("assets3d/sprites/enforcer_3d.png")
     terminal("assets3d/sprites/terminal_3d.png")
     print("wrote assets3d/sprites/*.png")

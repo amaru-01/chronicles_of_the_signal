@@ -15,6 +15,7 @@ const WALK_FPS: float = 9.0
 const ATTACK_RANGE: float = 2.6
 const ATTACK_COOLDOWN: float = 0.35
 const ATTACK_DAMAGE: int = 1
+const PULSE_COOLDOWN: float = 0.9
 
 ## Camera yaw in degrees; movement is rotated by this so "up" is always screen-up.
 var camera_yaw: float = 0.0
@@ -28,6 +29,7 @@ var _row: int = 0
 var _anim_time: float = 0.0
 var _step_timer: float = 0.0
 var _attack_timer: float = 0.0
+var _pulse_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -92,6 +94,7 @@ func _physics_process(delta: float) -> void:
 	_sprite.frame_coords = Vector2i(column, _row)
 
 	_attack_timer = maxf(0.0, _attack_timer - delta)
+	_pulse_timer = maxf(0.0, _pulse_timer - delta)
 	_update_target()
 
 
@@ -108,7 +111,7 @@ func attack() -> void:
 	Audio.sfx("swap", -14.0)
 	_spawn_slash()
 	for node: Node in get_tree().get_nodes_in_group("enemy3d"):
-		var enemy := node as Drone3D
+		var enemy := node as Enemy3D
 		if enemy == null or not enemy.active:
 			continue
 		var to_enemy: Vector3 = enemy.global_position - global_position
@@ -116,7 +119,26 @@ func attack() -> void:
 		if to_enemy.length() > ATTACK_RANGE:
 			continue
 		if to_enemy.length() < 0.2 or _facing.dot(to_enemy.normalized()) > 0.2:
-			enemy.take_hit(ATTACK_DAMAGE, global_position)
+			enemy.take_hit(ATTACK_DAMAGE, global_position, "melee")
+
+
+## Hack pulse: a ranged bolt along the facing direction.
+func fire_pulse() -> void:
+	if _pulse_timer > 0.0 or Dialogue.is_active or GameState.minigame_active:
+		return
+	_pulse_timer = PULSE_COOLDOWN
+	Audio.sfx("pickup", -6.0)
+	var bolt := Pulse3D.new()
+	bolt.direction = _facing
+	bolt.position = global_position + _facing * 0.9 + Vector3(0.0, 1.2, 0.0)
+	get_parent().add_child(bolt)
+
+
+## Red flash when the player takes damage.
+func hurt_flash() -> void:
+	_sprite.modulate = Color(3.0, 0.5, 0.5)
+	var tween: Tween = create_tween()
+	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.3)
 
 
 func get_target() -> Interactable3D:

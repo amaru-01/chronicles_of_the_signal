@@ -59,6 +59,7 @@ func _ready() -> void:
 	_layers.layer_changed.connect(_on_layer_changed)
 	_player.target_changed.connect(_on_target_changed)
 	GameState.integrity_changed.connect(func(_v: int) -> void: _on_integrity_changed())
+	GameState.health_changed.connect(func(_v: int) -> void: _on_health_changed())
 	GameState.signal_lost.connect(_on_signal_lost)
 	_apply_world_look(GameState.current_layer)
 	_refresh_hud()
@@ -86,6 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("attack"):
 		get_viewport().set_input_as_handled()
 		_player.attack()
+	elif event.is_action_pressed("pulse"):
+		get_viewport().set_input_as_handled()
+		_player.fire_pulse()
 
 
 # --- view (low-resolution render, upscaled) ------------------------------------
@@ -193,16 +197,21 @@ func _spawn_objects() -> void:
 	# The wall at column 20 has a two-row gap (rows 9 and 10); the door fills it.
 	door.global_position = Vector3(20.5 * WorldLayers3D.TILE, 0.0, 10.0 * WorldLayers3D.TILE)
 
+	_add_enemy(Enforcer3D.new(), Vector2(24, 16), Vector3(10.0, 0.0, 0.0))
+	_add_enemy(Enforcer3D.new(), Vector2(32, 4), Vector3(0.0, 0.0, 10.0))
 	_add_drone(Vector2(22, 14), Vector3(12.0, 0.0, 0.0))
 	_add_drone(Vector2(40, 3), Vector3(0.0, 0.0, 10.0))
 	_add_drone(Vector2(9, 13), Vector3(10.0, 0.0, 0.0))
 
 
 func _add_drone(cell: Vector2, patrol: Vector3) -> void:
-	var drone := Drone3D.new()
-	drone.patrol_offset = patrol
-	_viewport.add_child(drone)
-	drone.global_position = _layers.cell_to_world(cell)
+	_add_enemy(Drone3D.new(), cell, patrol)
+
+
+func _add_enemy(enemy: Enemy3D, cell: Vector2, patrol: Vector3) -> void:
+	enemy.patrol_offset = patrol
+	_viewport.add_child(enemy)
+	enemy.global_position = _layers.cell_to_world(cell)
 
 
 func _make_environment(
@@ -471,6 +480,12 @@ func _on_integrity_changed() -> void:
 	_refresh_hud()
 
 
+func _on_health_changed() -> void:
+	_player.hurt_flash()
+	_fx.flash(Color(1.0, 0.1, 0.2, 0.3), 0.4)
+	_refresh_hud()
+
+
 func _on_signal_lost() -> void:
 	if Dialogue.is_active:
 		await Dialogue.finished
@@ -478,6 +493,7 @@ func _on_signal_lost() -> void:
 	Dialogue.start("SYSTEM", ["SIGNAL LOST.", "Rebooting from the last safe point..."])
 	await Dialogue.finished
 	GameState.restore_signal()
+	GameState.restore_health()
 	GameState.current_layer = GameState.WorldLayer.PHYSICAL
 	SceneManager.change_scene(SCENE_PATH)
 
@@ -491,12 +507,12 @@ func _objectives() -> Array[Dictionary]:
 			"tiers": [
 				"The wall in the middle of the alley only exists in the real world.",
 				"Press SPACE to swap into the Grid, where the wall is gone, and cross it.",
-				"Cross in the Grid, swap back, and hack the terminal on the east side. Strike drones with J.",
+				"Cross in the Grid, swap back, and hack the terminal on the east side. Strike drones with J; armoured enforcers only fall to the K pulse.",
 			],
 		},
 		{
 			"done": func() -> bool: return false,
-			"tiers": ["The gate is open. This is the end of the prototype slice. Try striking a drone (J) in the Grid."],
+			"tiers": ["The gate is open. This is the end of the prototype slice. Strike drones (J) in the Grid; pulse (K) the enforcers in the real world."],
 		},
 	]
 
@@ -655,17 +671,22 @@ func _show_notice(text: String) -> void:
 	tween.tween_property(_notice, "modulate:a", 0.0, 0.5)
 
 
-## The attack action is registered in code so project.godot's input map stays untouched.
+## Combat actions are registered in code so project.godot's input map stays untouched.
 func _ensure_input_actions() -> void:
-	if InputMap.has_action("attack"):
+	_add_action("attack", KEY_J, MOUSE_BUTTON_LEFT, JOY_BUTTON_B)
+	_add_action("pulse", KEY_K, MOUSE_BUTTON_RIGHT, JOY_BUTTON_X)
+
+
+func _add_action(action: String, key_code: Key, mouse_button: MouseButton, pad_button: JoyButton) -> void:
+	if InputMap.has_action(action):
 		return
-	InputMap.add_action("attack")
+	InputMap.add_action(action)
 	var key := InputEventKey.new()
-	key.physical_keycode = KEY_J
-	InputMap.action_add_event("attack", key)
+	key.physical_keycode = key_code
+	InputMap.action_add_event(action, key)
 	var click := InputEventMouseButton.new()
-	click.button_index = MOUSE_BUTTON_LEFT
-	InputMap.action_add_event("attack", click)
+	click.button_index = mouse_button
+	InputMap.action_add_event(action, click)
 	var pad := InputEventJoypadButton.new()
-	pad.button_index = JOY_BUTTON_B
-	InputMap.action_add_event("attack", pad)
+	pad.button_index = pad_button
+	InputMap.action_add_event(action, pad)

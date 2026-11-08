@@ -6,6 +6,7 @@ signal layer_changed(layer: WorldLayer)
 signal terminal_hacked(terminal_id: String)
 signal terminal_reset(terminal_id: String)  # a timed switch turned itself off
 signal integrity_changed(value: int)
+signal health_changed(value: int)  # physical-world HP (used by the 3D game)
 signal signal_lost
 signal checkpoint_reached
 
@@ -79,6 +80,20 @@ func damage_signal(amount: int) -> void:
 	if player_signal_integrity == 0:
 		deaths += 1
 		signal_lost.emit()
+
+
+## Physical-world damage (3D game). At 0 HP the same "signal lost" reboot runs.
+func damage_health(amount: int) -> void:
+	player_health = maxi(0, player_health - amount)
+	health_changed.emit(player_health)
+	if player_health == 0:
+		deaths += 1
+		signal_lost.emit()
+
+
+func restore_health() -> void:
+	player_health = 100
+	health_changed.emit(player_health)
 
 
 func restore_signal() -> void:
