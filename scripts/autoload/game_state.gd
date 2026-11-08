@@ -7,6 +7,7 @@ signal terminal_hacked(terminal_id: String)
 signal terminal_reset(terminal_id: String)  # a timed switch turned itself off
 signal integrity_changed(value: int)
 signal health_changed(value: int)  # physical-world HP (used by the 3D game)
+signal saved  # a save was written (the 3D HUD shows a "SAVED" flash)
 signal signal_lost
 signal checkpoint_reached
 
@@ -24,6 +25,8 @@ const DISTRICT_SCENES: Dictionary = {
 	"3d_hub": "res://scenes3d/hub_3d.tscn",
 	"3d_district_01": "res://scenes3d/district_01_3d.tscn",
 	"3d_district_02": "res://scenes3d/district_02_3d.tscn",
+	"3d_district_03": "res://scenes3d/district_03_3d.tscn",
+	"3d_relay_tower": "res://scenes3d/relay_tower_3d.tscn",
 }
 
 const MAX_SIGNAL_INTEGRITY: int = 100
@@ -145,6 +148,8 @@ func save_game() -> void:
 		push_warning("GameState: cannot write save file")
 		return
 	file.store_string(JSON.stringify(data))
+	file.close()
+	saved.emit()
 
 
 ## Returns true if a valid save was loaded into the current state.

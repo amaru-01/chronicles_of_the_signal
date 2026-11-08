@@ -17,6 +17,8 @@ func _spawn_cells() -> Dictionary:
 		"start": Vector2(22, 22),
 		"from_d01": Vector2(6, 14),
 		"from_d02": Vector2(37, 14),
+		"from_d03": Vector2(6, 22),
+		"from_tower": Vector2(22, 6),
 	}
 
 
@@ -60,9 +62,10 @@ func _populate() -> void:
 		Vector2(40, 14), "3d_district_02", "from_hub", "THE ARCHIVE", "term_gate",
 		["The Archive gate is sealed.", "Open the first gate in Static Row, then come back."] as Array[String]
 	)
+	_add_exit(Vector2(3, 22), "3d_district_03", "from_hub", "NEON MARKET")
 	_add_exit(
-		Vector2(22, 3), "3d_relay_tower", "", "RELAY TOWER", "tower_key",
-		["The Relay Tower is not open yet.", "This part of the city is still under construction."] as Array[String],
+		Vector2(22, 3), "3d_relay_tower", "from_hub", "RELAY TOWER", "term_core",
+		["The Relay Tower is sealed.", "The key is the Curator's core, deep in the Archive."] as Array[String],
 		Color(1.0, 0.25, 0.3)
 	)
 

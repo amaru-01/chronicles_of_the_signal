@@ -48,6 +48,33 @@ func _on_contact() -> void:
 	pass
 
 
+## Short name used for the per-type kill counters ("kills_drone", "kills_sentry", ...).
+func _kind() -> String:
+	return "enemy"
+
+
+## False lets an enemy be harmless at times (e.g. the boss while phased out).
+func _can_hurt_player() -> bool:
+	return true
+
+
+## An attack that `_accepts` refused.
+func _on_deflected(away: Vector3) -> void:
+	_knockback = away.normalized() * 3.0
+	Audio.sfx("hack_fail", -10.0)
+	_flash(Color(1.6, 1.4, 0.8))  # spark: it shrugged the attack off
+
+
+## How hard a successful hit shoves this enemy (the boss ignores it).
+func _knockback_strength() -> float:
+	return 9.0
+
+
+## Called once when HP runs out, before the fade-out.
+func _on_death() -> void:
+	pass
+
+
 func _animate(delta: float) -> void:
 	_anim_time += delta
 
@@ -87,7 +114,7 @@ func _physics_process(delta: float) -> void:
 	if _cooldown > 0.0 or Dialogue.is_active or GameState.minigame_active:
 		return
 	var player := get_tree().get_first_node_in_group("player3d") as Node3D
-	if player and flat_distance(player.global_position) < contact_radius:
+	if player and _can_hurt_player() and flat_distance(player.global_position) < contact_radius:
 		_cooldown = hit_cooldown
 		Audio.sfx("hit")
 		_on_contact()
@@ -100,18 +127,19 @@ func take_hit(amount: int, from: Vector3, kind: String) -> void:
 	var away: Vector3 = global_position - from
 	away.y = 0.0
 	if not _accepts(kind):
-		_knockback = away.normalized() * 3.0
-		Audio.sfx("hack_fail", -10.0)
-		_flash(Color(1.6, 1.4, 0.8))  # spark: it shrugged the attack off
+		_on_deflected(away)
 		return
 	_hp -= amount
 	Audio.sfx("hit")
-	_knockback = away.normalized() * 9.0
+	_knockback = away.normalized() * _knockback_strength()
 	_flash(Color(3.0, 3.0, 3.0))
 	if _hp <= 0:
 		active = false
 		remove_from_group("enemy3d")
-		GameState.flags["kills"] = int(GameState.flags.get("kills", 0)) + 1  # for the hunting quest
+		GameState.flags["kills"] = int(GameState.flags.get("kills", 0)) + 1  # for the hunting quests
+		var kind_key: String = "kills_" + _kind()
+		GameState.flags[kind_key] = int(GameState.flags.get(kind_key, 0)) + 1
+		_on_death()
 		if _sprite:
 			var fade: Tween = create_tween()
 			fade.tween_property(_sprite, "modulate:a", 0.0, 0.25)

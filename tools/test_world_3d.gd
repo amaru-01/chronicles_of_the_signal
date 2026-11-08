@@ -57,7 +57,7 @@ func _run() -> void:
 	_state.reset()
 	var hub: Node = await _load_scene("res://scenes3d/hub_3d.tscn")
 	_check("hub: district id", hub.district_id == "3d_hub")
-	_check("hub: 3 exits", _count("exit3d") == 3)
+	_check("hub: 4 exits (Static Row, Archive, Neon Market, Relay Tower)", _count("exit3d") == 4)
 	_check("hub: 1 beacon", _count("beacon3d") == 1)
 	_check("hub: no enemies (safe zone)", _count("enemy3d") == 0)
 	_check("hub: minimap built", hub._minimap != null and hub._minimap._textures.size() == 2)
@@ -183,7 +183,7 @@ func _run() -> void:
 	var buttons: Array = []
 	for b: Node in d02._travel_menu._list.get_children():
 		buttons.append(b)
-	_check("menu: lists all 3 districts", buttons.size() == 3)
+	_check("menu: lists all 5 districts", buttons.size() == 5)
 	var enabled: int = 0
 	for b: Node in buttons:
 		if not b.disabled:

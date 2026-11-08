@@ -148,22 +148,18 @@ func _on_terminal_hacked(id: String) -> void:
 		_finale()
 
 
-## The reveal and the final choice. Sets flags["ending"] and goes to the end screen.
+## The reveal. The core opens the road to the Relay Tower; the final choice now happens
+## after the boss fight there.
 func _finale() -> void:
 	await get_tree().process_frame
 	if Dialogue.is_active:
 		await Dialogue.finished
+	GameState.flags["curator_revealed"] = true
 	Dialogue.start("CURATOR", [
 		"Welcome back, Runner. You built this Archive.",
 		"You were my best courier. You carried the deletions yourself, district by district.",
 		"Then you erased your own memory so you could not stop yourself. Clever.",
-		"Every memory in this room can be restored with one command. It will take yours with it.",
+		"Come to the Relay Tower. Finish what you started.",
 	] as Array[String])
 	await Dialogue.finished
-	var options: Array[String] = [
-		"Restore the city's memories. Lose my own.",
-		"Keep my memories. Leave the Archive sealed.",
-	]
-	var pick: int = await Dialogue.ask("CURATOR", "What will you do?", options)
-	GameState.flags["ending"] = "restore" if pick == 0 else "keep"
-	SceneManager.change_scene("res://ui/end_screen.tscn")
+	Dialogue.start("SYSTEM", ["The Relay Tower gate has opened in Vantage Plaza."] as Array[String])

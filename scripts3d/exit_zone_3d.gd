@@ -6,6 +6,7 @@ extends Area3D
 
 @export var target_district: String = WorldMap3D.HUB
 @export var target_spawn: String = ""
+## Shown above the doorway by the district HUD (full resolution, so it stays readable).
 @export var label_text: String = ""
 ## Empty = always open. Otherwise this terminal/switch id must be hacked first.
 @export var requires_id: String = ""
@@ -52,19 +53,6 @@ func _ready() -> void:
 	veil.material_override = veil_material
 	veil.position = Vector3(0.0, 1.5, 0.0)
 	add_child(veil)
-
-	if label_text != "":
-		var label := Label3D.new()
-		label.text = label_text
-		label.font = load("res://assets/fonts/cyber_mono.ttf")
-		label.font_size = 40
-		label.pixel_size = 0.012
-		label.modulate = color
-		label.outline_size = 8
-		label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-		label.no_depth_test = true
-		label.position = Vector3(0.0, 3.6, 0.0)
-		add_child(label)
 
 
 func _process(delta: float) -> void:

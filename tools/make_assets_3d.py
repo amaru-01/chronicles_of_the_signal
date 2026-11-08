@@ -245,6 +245,81 @@ def lever(path):
     im.save(path)
 
 
+def stalker(path):
+    """Grid wraith, 2 frames of 40x64: translucent, tapering into tendrils."""
+    im = Image.new("RGBA", (80, 64), (0, 0, 0, 0))
+    for f in range(2):
+        fr = Image.new("RGBA", (40, 64), (0, 0, 0, 0))
+        d = ImageDraw.Draw(fr)
+        body = (90, 40, 200, 235)
+        d.polygon([(20, 4), (31, 14), (33, 34), (28, 50), (12, 50), (7, 34), (9, 14)], fill=body, outline=c((0, 240, 255)))
+        for i, x in enumerate((10, 16, 22, 28)):
+            sway = (2 if (i + f) % 2 else -2)
+            d.line([x, 48, x + sway, 60], fill=c((0, 200, 255)), width=3)
+        d.ellipse([12, 14, 18, 20], fill=c((255, 255, 255)))
+        d.ellipse([22, 14, 28, 20], fill=c((255, 255, 255)))
+        d.rectangle([14, 16, 16, 18], fill=c((255, 40, 120)))
+        d.rectangle([24, 16, 26, 18], fill=c((255, 40, 120)))
+        d.arc([13, 24, 27, 34], 20, 160, fill=c((10, 4, 30)), width=2)            # grim mouth
+        for y in (30, 38, 44):
+            d.line([10, y, 30, y], fill=c((140, 90, 255)))                          # data stripes
+        im.paste(outline(fr), (f * 40, 0))
+    im.save(path)
+
+
+def sentry(path):
+    """Physical-world turret, 2 frames of 48x64 (idle, firing)."""
+    im = Image.new("RGBA", (96, 64), (0, 0, 0, 0))
+    for f in range(2):
+        fr = Image.new("RGBA", (48, 64), (0, 0, 0, 0))
+        d = ImageDraw.Draw(fr)
+        orange = (255, 140, 30)
+        rect(d, 8, 50, 40, 62, (30, 32, 48), orange)                              # base
+        rect(d, 18, 36, 30, 50, (44, 50, 72), orange)                             # stem
+        d.ellipse([8, 8, 40, 42], fill=c((58, 66, 96)), outline=c(orange))        # head dome
+        d.ellipse([16, 16, 32, 32], fill=c((20, 6, 6)), outline=c((255, 60, 60))) # lens housing
+        glow = (255, 220, 200) if f else (255, 60, 60)
+        d.ellipse([20, 20, 28, 28], fill=c(glow))                                  # lens
+        if f:
+            d.ellipse([14, 14, 34, 34], outline=c((255, 120, 60)))                 # muzzle flare
+        rect(d, 4, 30, 8, 38, (44, 50, 72), orange)                                # side pods
+        rect(d, 40, 30, 44, 38, (44, 50, 72), orange)
+        im.paste(outline(fr), (f * 48, 0))
+    im.save(path)
+
+
+def curator(path):
+    """The Curator, 4 frames of 96x128: [physical a, physical b, digital a, digital b]."""
+    im = Image.new("RGBA", (96 * 4, 128), (0, 0, 0, 0))
+    forms = [((255, 190, 60), (255, 60, 150), (46, 12, 34)), ((0, 240, 255), (200, 120, 255), (10, 22, 56))]
+    for form, (accent, core, robe) in enumerate(forms):
+        for f in range(2):
+            fr = Image.new("RGBA", (96, 128), (0, 0, 0, 0))
+            d = ImageDraw.Draw(fr)
+            bob = 3 * f
+            # halo
+            d.ellipse([22, 2 + bob, 74, 22 + bob], outline=c(accent), width=3)
+            # robe: a tall tapering cloak with no legs (it floats)
+            d.polygon([(48, 18 + bob), (68, 34 + bob), (80, 96 + bob), (62, 118 + bob + f), (34, 118 + bob - f), (16, 96 + bob), (28, 34 + bob)],
+                      fill=c(robe), outline=c(accent))
+            d.polygon([(48, 18 + bob), (58, 34 + bob), (54, 112 + bob), (42, 112 + bob), (38, 34 + bob)], fill=c(tuple(max(0, v - 14) for v in robe)))
+            # hood and face void
+            d.ellipse([34, 18 + bob, 62, 50 + bob], fill=c((6, 4, 14)), outline=c(accent))
+            d.ellipse([40, 30 + bob, 46, 36 + bob], fill=c(core))
+            d.ellipse([50, 30 + bob, 56, 36 + bob], fill=c(core))
+            # chest core
+            d.ellipse([38, 58 + bob, 58, 78 + bob], fill=c((10, 4, 18)), outline=c(core), width=2)
+            d.ellipse([43, 63 + bob, 53, 73 + bob], fill=c(core if f == 0 else (255, 255, 255)))
+            # drifting hands
+            d.ellipse([6, 62 + bob - f * 4, 20, 76 + bob - f * 4], fill=c(accent))
+            d.ellipse([76, 62 + bob + f * 4, 90, 76 + bob + f * 4], fill=c(accent))
+            # data runes on the hem
+            for i in range(5):
+                d.line([26 + i * 9, 100 + bob, 26 + i * 9, 106 + bob], fill=c(accent))
+            im.paste(outline(fr), ((form * 2 + f) * 96, 0))
+    im.save(path)
+
+
 def terminal(path):
     im = Image.new("RGBA", (80, 56), (0, 0, 0, 0))
     for f in range(2):
@@ -272,6 +347,9 @@ if __name__ == "__main__":
     sheet(FIXER, "assets3d/sprites/fixer_3d.png")
     drone("assets3d/sprites/drone_3d.png")
     enforcer("assets3d/sprites/enforcer_3d.png")
+    stalker("assets3d/sprites/stalker_3d.png")
+    sentry("assets3d/sprites/sentry_3d.png")
+    curator("assets3d/sprites/curator_3d.png")
     lever("assets3d/sprites/lever_3d.png")
     terminal("assets3d/sprites/terminal_3d.png")
     print("wrote assets3d/sprites/*.png")

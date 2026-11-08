@@ -25,5 +25,9 @@ func _animate(delta: float) -> void:
 	_sprite.position.y = hover_height + sin(_anim_time * 3.0) * 0.12
 
 
+func _kind() -> String:
+	return "drone"
+
+
 func _on_contact() -> void:
 	GameState.damage_signal(Items3D.signal_damage(damage))

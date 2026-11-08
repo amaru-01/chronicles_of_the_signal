@@ -35,6 +35,12 @@ func _ready() -> void:
 func _on_continue_pressed() -> void:
 	if GameState.load_game():
 		SceneManager.change_scene(GameState.district_scene())
+	else:
+		# Unreadable save: hide the dead button instead of doing nothing. The file is left
+		# alone so it can still be inspected; Start overwrites it.
+		push_warning("Title: save file could not be read")
+		_continue.visible = false
+		(_start_3d if _start_3d.visible else _start).grab_focus()
 
 
 func _on_start_pressed() -> void:

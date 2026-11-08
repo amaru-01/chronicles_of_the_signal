@@ -9,6 +9,8 @@ const DISTRICTS: Dictionary = {
 	"3d_hub": {"title": "VANTAGE PLAZA", "scene": "res://scenes3d/hub_3d.tscn"},
 	"3d_district_01": {"title": "DISTRICT 01 - STATIC ROW", "scene": "res://scenes3d/district_01_3d.tscn"},
 	"3d_district_02": {"title": "DISTRICT 02 - THE ARCHIVE", "scene": "res://scenes3d/district_02_3d.tscn"},
+	"3d_district_03": {"title": "DISTRICT 03 - NEON MARKET", "scene": "res://scenes3d/district_03_3d.tscn"},
+	"3d_relay_tower": {"title": "THE RELAY TOWER", "scene": "res://scenes3d/relay_tower_3d.tscn"},
 }
 
 

@@ -70,7 +70,8 @@ func _process(_delta: float) -> bool:
 		12 + 40:
 			_check("pulse hurts an enforcer (hp 4 -> 2)", _enforcers[0]._hp == 2)
 		12 + 70:
-			player.fire_pulse()  # cooldown (0.9 s) has expired by now
+			player._pulse_timer = 0.0  # do not depend on the frame rate for the 0.9 s cooldown
+			player.fire_pulse()
 		12 + 120:
 			_check("second pulse kills the enforcer", _dead(_enforcers[0]))
 			_state.player_health = 100

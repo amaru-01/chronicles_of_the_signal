@@ -69,7 +69,7 @@ func _run() -> void:
 
 	# ------------------------------------------------------------ quest logic
 	var events: Array = _quests.evaluate()
-	_check("fresh game: 5 quests start (the Archive waits on the first)", _types(events, "quest_start") == 5)
+	_check("fresh game: 6 quests start (the Archive and the Tower wait)", _types(events, "quest_start") == 6)
 	_check("q_wire active, q_archive locked",
 		_quests.status("q_wire") == "active" and _quests.status("q_archive") == "locked")
 	var tracked: Dictionary = _quests.tracked()
@@ -104,24 +104,25 @@ func _run() -> void:
 	_check("5 kills complete 'Clear the Streets' and grant Hardened Plating",
 		_quests.status("q_streets") == "done" and _owned_count("upgrade_plating") == 1)
 
-	for id: String in ["fragment_01", "fragment_02", "fragment_03"]:
+	for id: String in ["fragment_01", "fragment_02", "fragment_03", "fragment_04"]:
 		_state.add_item(id)
 	_quests.evaluate()
-	_check("3 of 4 fragments: quest still open",
+	_check("4 of 5 fragments: quest still open",
 		_quests.status("q_memories") == "active"
-		and _quests.objective_text(_quests.get_def("q_memories")["objectives"][0]).ends_with("(3/4)"))
-	_state.add_item("fragment_04")
+		and _quests.objective_text(_quests.get_def("q_memories")["objectives"][0]).ends_with("(4/5)"))
+	_state.add_item("fragment_05")
 	_quests.evaluate()
-	_check("4th fragment completes 'Lost Memories' (Strike Edge)",
+	_check("5th fragment completes 'Lost Memories' (Strike Edge)",
 		_quests.status("q_memories") == "done" and _owned_count("upgrade_strike_edge") == 1)
 
 	_state.hack_terminal("node_hub")
 	_state.hack_terminal("node_d01")
-	_quests.evaluate()
-	_check("2 of 3 data nodes: 'Open Nodes' still open", _quests.status("q_nodes") == "active")
 	_state.hack_terminal("node_d02")
 	_quests.evaluate()
-	_check("3rd node completes 'Open Nodes' (Signal Cell)",
+	_check("3 of 4 data nodes: 'Open Nodes' still open", _quests.status("q_nodes") == "active")
+	_state.hack_terminal("node_d03")
+	_quests.evaluate()
+	_check("4th node completes 'Open Nodes' (Signal Cell)",
 		_quests.status("q_nodes") == "done" and _owned_count("upgrade_signal_cell") == 1)
 
 	# ------------------------------------------------------------ upgrade effects
@@ -183,8 +184,9 @@ func _run() -> void:
 	_check("journal: memories tab shows recovered memory text",
 		_labels(hub._journal._memories_box).contains("hidden cache") or _labels(hub._journal._memories_box).contains("Pulse Core"))
 	var items_text: String = _labels(hub._journal._items_box)
-	_check("journal: owned upgrades shown, missing ones hidden as ???",
-		items_text.contains("[+] Pulse Core") and items_text.contains("[+] Phase Boots") and not items_text.contains("[ ] ???"))
+	_check("journal: owned upgrades shown, the unfound one (Echo Core) hidden as ???",
+		items_text.contains("[+] Pulse Core") and items_text.contains("[+] Phase Boots")
+		and items_text.contains("[ ] ???") and not items_text.contains("Echo Core"))
 	hub._journal.close()
 	_check("journal closes and unpauses", not hub._journal.is_open() and not paused)
 

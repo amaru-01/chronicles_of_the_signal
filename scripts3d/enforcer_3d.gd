@@ -50,5 +50,9 @@ func _move(delta: float) -> void:
 		_to_end = not _to_end
 
 
+func _kind() -> String:
+	return "enforcer"
+
+
 func _on_contact() -> void:
 	GameState.damage_health(Items3D.physical_damage(damage))

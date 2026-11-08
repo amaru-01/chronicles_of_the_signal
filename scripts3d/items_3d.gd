@@ -9,6 +9,9 @@ const ITEMS: Dictionary = {
 	"fragment_02": {"name": "Memory Fragment II", "desc": "A server room. Your own hands, typing a command you cannot read."},
 	"fragment_03": {"name": "Memory Fragment III", "desc": "A door sliding shut. You, younger, carrying a crate marked ARCHIVE."},
 	"fragment_04": {"name": "Memory Fragment IV", "desc": "The Curator's voice, softer than you expect."},
+	"fragment_05": {"name": "Memory Fragment V", "desc": "A market stall at dusk. A gift, wrapped in paper, for someone who never got anything."},
+	"chip_market": {"name": "Market Datachip", "desc": "Sale records. The Curator bought one sentry for every voice it wanted quiet."},
+	"upgrade_echo_core": {"name": "Echo Core", "desc": "Signal integrity slowly regenerates (+2 every 1.5 s)."},
 	"chip_hub": {"name": "Plaza Datachip", "desc": "A cracked chip. A sketch of Vantage Plaza before the Signal went quiet: crowded, loud, alive."},
 	"chip_static": {"name": "Static Row Datachip", "desc": "Courier logs from the alley. Every route ends at a gate that no longer opens."},
 	"chip_archive": {"name": "Archive Datachip", "desc": "An index of deleted names. Yours is on it, written in your own hand."},
@@ -24,6 +27,7 @@ const ITEMS: Dictionary = {
 ## Display order of the upgrades in the journal.
 const UPGRADES: Array[String] = [
 	"upgrade_pulse_core", "upgrade_strike_edge", "upgrade_plating", "upgrade_signal_cell", "upgrade_phase_boots",
+	"upgrade_echo_core",
 ]
 
 
@@ -55,6 +59,11 @@ static func strike_damage() -> int:
 
 static func speed_multiplier() -> float:
 	return 1.15 if owned("upgrade_phase_boots") else 1.0
+
+
+## Signal integrity restored per regeneration tick (every 1.5 s) with the Echo Core.
+static func regen_per_tick() -> int:
+	return 2 if owned("upgrade_echo_core") else 0
 
 
 ## Damage to HP after armour.

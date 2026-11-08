@@ -47,6 +47,9 @@ var _quest_label: Label
 var _quest_timer: float = 0.0
 var _notice_queue: Array[String] = []
 var _notice_busy: bool = false
+var _saved_label: Label
+var _saved_tween: Tween
+var _regen_timer: float = 0.0
 
 var _hp_bar: ProgressBar
 var _signal_bar: ProgressBar
@@ -59,6 +62,7 @@ func _ready() -> void:
 	_ensure_input_actions()
 	GameState.current_district = district_id
 	GameState.flags["visited_" + district_id] = true  # quest objectives ("reach The Archive")
+	GameState.current_district = district_id
 	_build_view()
 	_build_world()
 	_build_hud()
@@ -94,6 +98,8 @@ func _process(delta: float) -> void:
 	if _quest_timer <= 0.0:
 		_quest_timer = 0.5
 		_poll_quests()
+	_regenerate_signal(delta)
+	_update_exit_labels()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -123,6 +129,45 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("journal"):
 		get_viewport().set_input_as_handled()
 		_journal.open()
+
+
+# --- exit labels (full-resolution text pinned to 3D doorways) ------------------------
+
+const LABEL_RANGE: float = 16.0
+var _exit_labels: Dictionary = {}  # ExitZone3D -> Label
+
+
+## The pixel viewport is too coarse for readable text, so doorway names are HUD labels
+## placed at the projected position of each exit and faded out with distance.
+func _update_exit_labels() -> void:
+	if _rig == null or _rig.camera == null or _hud == null:
+		return
+	var camera: Camera3D = _rig.camera
+	var scale: Vector2 = _view.size / Vector2(VIEW_SIZE)
+	for node: Node in get_tree().get_nodes_in_group("exit3d"):
+		var zone := node as ExitZone3D
+		if zone == null or zone.label_text == "":
+			continue
+		var label: Label = _exit_labels.get(zone)
+		if label == null:
+			label = Label.new()
+			label.text = zone.label_text
+			label.add_theme_color_override("font_color", zone.color.lightened(0.35))
+			label.add_theme_color_override("font_outline_color", Color(0.02, 0.0, 0.06))
+			label.add_theme_constant_override("outline_size", 8)
+			label.add_theme_font_size_override("font_size", 20)
+			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_hud.add_child(label)
+			_hud.move_child(label, 0)  # behind the bars and dialogue
+			_exit_labels[zone] = label
+		var anchor: Vector3 = zone.global_position + Vector3(0.0, 3.7, 0.0)
+		var distance: float = camera.global_position.distance_to(anchor)
+		var visible_now: bool = not camera.is_position_behind(anchor) and distance < LABEL_RANGE
+		label.visible = visible_now
+		if visible_now:
+			label.modulate.a = clampf((LABEL_RANGE - distance) / 5.0, 0.0, 1.0)
+			var screen: Vector2 = _view.global_position + camera.unproject_position(anchor) * scale
+			label.position = screen - label.size * 0.5
 
 
 # --- view (low-resolution render, upscaled) ------------------------------------
@@ -202,6 +247,7 @@ func _build_world() -> void:
 	_build_digital_dressing(_layers.digital_root)
 	_populate()
 	_start_weather()
+	GameState.save_game()  # autosave on entering a district: Continue resumes here
 
 
 func _add_drone(cell: Vector2, patrol: Vector3) -> void:
@@ -210,8 +256,9 @@ func _add_drone(cell: Vector2, patrol: Vector3) -> void:
 
 func _add_enemy(enemy: Enemy3D, cell: Vector2, patrol: Vector3) -> void:
 	enemy.patrol_offset = patrol
+	# Position BEFORE add_child: enemies record their patrol start in _ready.
+	enemy.position = _layers.cell_to_world(cell)
 	_viewport.add_child(enemy)
-	enemy.global_position = _layers.cell_to_world(cell)
 
 
 func _make_environment(
@@ -673,9 +720,9 @@ func _show_notice(text: String) -> void:
 ## Actions are registered in code so project.godot's input map stays untouched.
 func _ensure_input_actions() -> void:
 	_add_action("attack", KEY_J, MOUSE_BUTTON_LEFT, JOY_BUTTON_B)
-	_add_action("pulse", KEY_K, MOUSE_BUTTON_RIGHT, JOY_BUTTON_X)
-	_add_action("fast_travel", KEY_T, MOUSE_BUTTON_NONE, JOY_BUTTON_INVALID)
-	_add_action("journal", KEY_TAB, MOUSE_BUTTON_NONE, JOY_BUTTON_INVALID)
+	_add_action("pulse", KEY_K, MOUSE_BUTTON_RIGHT, JOY_BUTTON_RIGHT_SHOULDER)  # X is "hint"
+	_add_action("fast_travel", KEY_T, MOUSE_BUTTON_NONE, JOY_BUTTON_LEFT_SHOULDER)
+	_add_action("journal", KEY_TAB, MOUSE_BUTTON_NONE, JOY_BUTTON_BACK)
 
 
 func _add_action(action: String, key_code: Key, mouse_button: MouseButton, pad_button: JoyButton) -> void:
@@ -723,15 +770,15 @@ func _spawn_position() -> Vector3:
 
 ## Place a node at a map cell (x, z in cells; the cell centre).
 func _place(node: Node3D, cell: Vector2) -> void:
+	node.position = _layers.cell_to_world(cell)  # set before add_child: _ready may read it
 	_viewport.add_child(node)
-	node.global_position = _layers.cell_to_world(cell)
 
 
 ## Place a node using the 2D game's pixel coordinates (32 px per tile), so the 2D
 ## district layouts can be ported by copying their numbers.
 func _place_px(node: Node3D, pixel: Vector2) -> void:
+	node.position = _px_offset(pixel)
 	_viewport.add_child(node)
-	node.global_position = _px_offset(pixel)
 
 
 ## A 2D pixel position/offset as 3D metres on the ground plane.
@@ -791,7 +838,38 @@ func _build_quest_hud() -> void:
 	_pin(_quest_label, 1.0, 0.0, 14.0)
 	_quest_label.offset_top += 46.0  # just under the district name
 	_quest_label.offset_bottom += 46.0
+	_saved_label = Label.new()
+	_saved_label.text = "SAVED"
+	_saved_label.add_theme_font_size_override("font_size", 13)
+	_saved_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.7))
+	_saved_label.modulate.a = 0.0
+	_hud.add_child(_saved_label)
+	_pin(_saved_label, 0.0, 1.0, 14.0)
+	GameState.saved.connect(_flash_saved)
 	_refresh_tracker()
+
+
+func _flash_saved() -> void:
+	if _saved_tween:
+		_saved_tween.kill()
+	_saved_label.modulate.a = 1.0
+	_saved_tween = create_tween()
+	_saved_tween.tween_interval(0.8)
+	_saved_tween.tween_property(_saved_label, "modulate:a", 0.0, 0.6)
+
+
+## Echo Core: signal integrity creeps back up on its own (quietly: no damage flash).
+func _regenerate_signal(delta: float) -> void:
+	var amount: int = Items3D.regen_per_tick()
+	if amount <= 0 or Dialogue.is_active:
+		return
+	_regen_timer -= delta
+	if _regen_timer > 0.0:
+		return
+	_regen_timer = 1.5
+	if GameState.player_signal_integrity < GameState.MAX_SIGNAL_INTEGRITY:
+		GameState.player_signal_integrity = mini(GameState.MAX_SIGNAL_INTEGRITY, GameState.player_signal_integrity + amount)
+		_refresh_hud()
 
 
 ## Tick the quest log; announce anything that happened.
