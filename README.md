@@ -109,9 +109,12 @@ To regenerate the placeholder art and audio: `pip install pillow numpy`, then `p
 
 ## 🌐 Web Export
 
-1. **Project → Export → Add… → Web**, and install the export templates when prompted.
-2. Export to `exports/web/index.html`.
-3. Zip the folder's contents and upload to itch.io as an HTML5 game.
+1. **Project → Export → Web**, and install the export templates when prompted.
+2. Click **Export Project** — the preset writes to `web/index.html` (keep the file name `index.html`).
+3. Commit the `web/` folder and push to `main`. Netlify serves `web/` automatically (see `netlify.toml`) at https://chronicles-of-signal.netlify.app.
+4. For itch.io, zip the contents of `web/` and upload it as an HTML5 game.
+
+`web/.gdignore` stops Godot from importing the exported files back into the project.
 
 Browsers block audio until the first click or key press, so keep a title screen before gameplay.
 
