@@ -14,8 +14,6 @@ const DIRECTIONS: Array[String] = ["down", "left", "right", "up"]  # sheet row o
 const WALK_FPS: float = 9.0
 const ATTACK_RANGE: float = 2.6
 const ATTACK_COOLDOWN: float = 0.35
-const ATTACK_DAMAGE: int = 1
-const PULSE_COOLDOWN: float = 0.9
 
 ## Camera yaw in degrees; movement is rotated by this so "up" is always screen-up.
 var camera_yaw: float = 0.0
@@ -72,7 +70,7 @@ func _physics_process(delta: float) -> void:
 	if not (Dialogue.is_active or GameState.minigame_active):
 		input = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var direction := Vector3(input.x, 0.0, input.y).rotated(Vector3.UP, deg_to_rad(camera_yaw))
-	velocity = direction * SPEED
+	velocity = direction * SPEED * Items3D.speed_multiplier()
 	move_and_slide()
 	position.y = 0.0
 
@@ -119,17 +117,18 @@ func attack() -> void:
 		if to_enemy.length() > ATTACK_RANGE:
 			continue
 		if to_enemy.length() < 0.2 or _facing.dot(to_enemy.normalized()) > 0.2:
-			enemy.take_hit(ATTACK_DAMAGE, global_position, "melee")
+			enemy.take_hit(Items3D.strike_damage(), global_position, "melee")
 
 
 ## Hack pulse: a ranged bolt along the facing direction.
 func fire_pulse() -> void:
 	if _pulse_timer > 0.0 or Dialogue.is_active or GameState.minigame_active:
 		return
-	_pulse_timer = PULSE_COOLDOWN
+	_pulse_timer = Items3D.pulse_cooldown()
 	Audio.sfx("pickup", -6.0)
 	var bolt := Pulse3D.new()
 	bolt.direction = _facing
+	bolt.damage = Items3D.pulse_damage()
 	bolt.position = global_position + _facing * 0.9 + Vector3(0.0, 1.2, 0.0)
 	get_parent().add_child(bolt)
 

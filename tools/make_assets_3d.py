@@ -228,6 +228,23 @@ def enforcer(path):
     im.save(path)
 
 
+def lever(path):
+    """Wall lever, 2 frames of 40x56 (off, on)."""
+    im = Image.new("RGBA", (80, 56), (0, 0, 0, 0))
+    for f in range(2):
+        fr = Image.new("RGBA", (40, 56), (0, 0, 0, 0))
+        d = ImageDraw.Draw(fr)
+        accent = (150, 150, 190) if f == 0 else (255, 60, 220)
+        rect(d, 6, 36, 34, 54, (18, 20, 40), accent)                      # base box
+        rect(d, 10, 40, 30, 48, (8, 10, 24))                              # slot
+        tilt = -10 if f == 0 else 10
+        d.line([20, 44, 20 + tilt, 14], fill=c(accent), width=3)          # handle
+        d.ellipse([20 + tilt - 5, 8, 20 + tilt + 5, 18], fill=c(accent))  # knob
+        rect(d, 17, 50, 23, 52, accent)
+        im.paste(outline(fr), (f * 40, 0))
+    im.save(path)
+
+
 def terminal(path):
     im = Image.new("RGBA", (80, 56), (0, 0, 0, 0))
     for f in range(2):
@@ -255,5 +272,6 @@ if __name__ == "__main__":
     sheet(FIXER, "assets3d/sprites/fixer_3d.png")
     drone("assets3d/sprites/drone_3d.png")
     enforcer("assets3d/sprites/enforcer_3d.png")
+    lever("assets3d/sprites/lever_3d.png")
     terminal("assets3d/sprites/terminal_3d.png")
     print("wrote assets3d/sprites/*.png")

@@ -1,12 +1,20 @@
 class_name Npc3D
 extends Interactable3D
-## A talking character. Says `alt_lines` once `alt_if_hacked` has been hacked.
+## A talking character. Says `alt_lines` once `alt_if_hacked` has been hacked. Optional
+## question menu after the lines: `answers[i]` is said for `options[i]`; the last option
+## always ends the conversation (use it for "Never mind").
 
 @export var speaker: String = "FIXER"
 @export var sheet: Texture2D = preload("res://assets3d/sprites/fixer_3d.png")
+@export var tint: Color = Color.WHITE
+## Set when the player talks to this character (for quest objectives).
+@export var talk_flag: String = ""
 @export var lines: Array[String] = []
 @export var alt_if_hacked: String = ""
 @export var alt_lines: Array[String] = []
+@export var question: String = ""
+@export var options: Array[String] = []
+@export var answers: Array[String] = []
 
 var _sprite: Sprite3D
 
@@ -16,13 +24,14 @@ func _ready() -> void:
 	super()
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 0.8
+	sphere.radius = 1.4
 	shape.shape = sphere
 	shape.position.y = 0.9
 	add_child(shape)
 	# 5x4 sheet of 48x80 cells: show the front-facing idle cell.
 	_sprite = make_billboard(sheet, 5, 4)
 	_sprite.frame_coords = Vector2i(0, 0)
+	_sprite.modulate = tint
 	add_child(_sprite)
 
 
@@ -41,7 +50,21 @@ func _process(_delta: float) -> void:
 
 
 func interact(_player: Node3D) -> void:
-	var spoken: Array[String] = lines
+	if talk_flag != "":
+		GameState.flags[talk_flag] = true
 	if alt_if_hacked != "" and GameState.is_hacked(alt_if_hacked) and not alt_lines.is_empty():
-		spoken = alt_lines
-	Dialogue.start(speaker, spoken)
+		Dialogue.start(speaker, alt_lines)
+		return
+	Dialogue.start(speaker, lines)
+	await Dialogue.finished
+	if not options.is_empty():
+		await _ask_questions()
+
+
+func _ask_questions() -> void:
+	while true:
+		var pick: int = await Dialogue.ask(speaker, question, options)
+		if pick < 0 or pick >= options.size() - 1 or pick >= answers.size():
+			return
+		Dialogue.start(speaker, [answers[pick]] as Array[String])
+		await Dialogue.finished

@@ -111,6 +111,7 @@ func take_hit(amount: int, from: Vector3, kind: String) -> void:
 	if _hp <= 0:
 		active = false
 		remove_from_group("enemy3d")
+		GameState.flags["kills"] = int(GameState.flags.get("kills", 0)) + 1  # for the hunting quest
 		if _sprite:
 			var fade: Tween = create_tween()
 			fade.tween_property(_sprite, "modulate:a", 0.0, 0.25)

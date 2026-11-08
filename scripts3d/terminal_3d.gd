@@ -10,6 +10,8 @@ const TERMINAL_TEXTURE: Texture2D = preload("res://assets3d/sprites/terminal_3d.
 @export var attempts: int = 4
 @export var time_limit: float = 30.0
 @export var fail_damage: int = 20
+## Optional-node reward: an item id handed over on the first successful hack.
+@export var reward_item: String = ""
 
 var _busy: bool = false
 var _sprite: Sprite3D
@@ -48,11 +50,23 @@ func interact(_player: Node3D) -> void:
 			GameState.hack_terminal(terminal_id)
 			_update_look()
 			Audio.sfx("hack_ok")
-			Dialogue.start("TERMINAL", ["Access granted.", "Somewhere nearby, a lock gives way."])
+			var lines: Array[String] = ["Access granted."]
+			if reward_item != "":
+				lines.append(_grant_reward())
+			else:
+				lines.append("Somewhere nearby, a lock gives way.")
+			Dialogue.start("TERMINAL", lines)
 		HackMinigame.Result.FAIL:
 			Audio.sfx("hack_fail")
 			Dialogue.start("TERMINAL", ["Trace detected. Signal integrity -%d%%." % fail_damage])
-			GameState.damage_signal(fail_damage)
+			GameState.damage_signal(Items3D.signal_damage(fail_damage))
+
+
+## Hand over this node's reward (once) and return the line to show.
+func _grant_reward() -> String:
+	if not GameState.inventory.has(reward_item):
+		GameState.add_item(reward_item)
+	return "Recovered: %s." % Items3D.name_of(reward_item)
 
 
 func _update_look() -> void:

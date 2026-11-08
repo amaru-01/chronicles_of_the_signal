@@ -13,11 +13,17 @@ signal checkpoint_reached
 enum WorldLayer { PHYSICAL, DIGITAL }
 
 const SAVE_PATH: String = "user://save.json"
+## Where saves go. Dev tests point this at a throwaway file so they never touch a real save.
+var save_path: String = SAVE_PATH
 const SAVE_VERSION: int = 1
 ## district id -> scene, used by Continue.
 const DISTRICT_SCENES: Dictionary = {
 	"district_01": "res://scenes/world/district_01.tscn",
 	"district_02": "res://scenes/world/district_02.tscn",
+	# 3D game (see scripts3d/world_map_3d.gd)
+	"3d_hub": "res://scenes3d/hub_3d.tscn",
+	"3d_district_01": "res://scenes3d/district_01_3d.tscn",
+	"3d_district_02": "res://scenes3d/district_02_3d.tscn",
 }
 
 const MAX_SIGNAL_INTEGRITY: int = 100
@@ -119,7 +125,7 @@ func reset() -> void:
 # puts you back at the district's spawn point with your progress intact.
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return FileAccess.file_exists(save_path)
 
 
 func save_game() -> void:
@@ -134,7 +140,7 @@ func save_game() -> void:
 		"deaths": deaths,
 		"checkpoints": _checkpoints_to_json(),
 	}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file == null:
 		push_warning("GameState: cannot write save file")
 		return
@@ -145,7 +151,7 @@ func save_game() -> void:
 func load_game() -> bool:
 	if not has_save():
 		return false
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
 	if not parsed is Dictionary:
 		return false
 	var data: Dictionary = parsed
@@ -170,9 +176,20 @@ func load_game() -> bool:
 	return true
 
 
+## The district id stored in the save file ("" if there is no readable save). Lets the
+## title screen say whether Continue resumes the 2D or the 3D game.
+func saved_district() -> String:
+	if not has_save():
+		return ""
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path))
+	if parsed is Dictionary:
+		return str((parsed as Dictionary).get("district", ""))
+	return ""
+
+
 func delete_save() -> void:
 	if has_save():
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
 
 
 func district_scene() -> String:

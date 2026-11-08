@@ -26,4 +26,4 @@ func _animate(delta: float) -> void:
 
 
 func _on_contact() -> void:
-	GameState.damage_signal(damage)
+	GameState.damage_signal(Items3D.signal_damage(damage))

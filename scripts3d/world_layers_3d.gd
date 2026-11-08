@@ -127,6 +127,10 @@ func _apply_layer(layer: GameState.WorldLayer) -> void:
 
 
 func _would_trap(target: GameState.WorldLayer, pos: Vector3) -> bool:
+	for node: Node in get_tree().get_nodes_in_group("doors3d"):
+		var door := node as Door3D
+		if door and door.blocks_swap(target, pos):
+			return true
 	var r: float = 0.4
 	for offset: Vector2 in [Vector2(-r, -r), Vector2(r, -r), Vector2(-r, r), Vector2(r, r)]:
 		var cx: int = floori((pos.x + offset.x) / TILE)

@@ -28,7 +28,12 @@ func interact(_player: Node3D) -> void:
 
 
 func exists_in(layer: GameState.WorldLayer) -> bool:
-	match realm:
+	return realm_active(realm, layer)
+
+
+## True if something with this realm exists while `layer` is the active world.
+static func realm_active(object_realm: Realm, layer: GameState.WorldLayer) -> bool:
+	match object_realm:
 		Realm.PHYSICAL:
 			return layer == GameState.WorldLayer.PHYSICAL
 		Realm.DIGITAL:

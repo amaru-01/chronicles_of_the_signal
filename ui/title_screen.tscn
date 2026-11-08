@@ -83,11 +83,17 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Continue"
 
+[node name="Start3DButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Start 3D (new)"
+
 [node name="StartButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Start"
+text = "Start 2D (classic)"
 
 [node name="QuitButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 48)
@@ -99,7 +105,8 @@ text = "Quit"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.55, 0.65, 1)
 theme_override_font_sizes/font_size = 16
-text = "WASD / arrows: move    Space: swap worlds    E: interact    H: hint    Esc: pause"
+text = "WASD / arrows: move    Space: swap worlds    E: interact    H: hint    Esc: pause
+3D adds:  J strike    K pulse    T fast travel"
 horizontal_alignment = 1
 
 [node name="ScreenFX" parent="." instance=ExtResource("5_fx")]

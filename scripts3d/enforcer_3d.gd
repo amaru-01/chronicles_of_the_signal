@@ -51,4 +51,4 @@ func _move(delta: float) -> void:
 
 
 func _on_contact() -> void:
-	GameState.damage_health(damage)
+	GameState.damage_health(Items3D.physical_damage(damage))

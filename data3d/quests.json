@@ -1,0 +1,70 @@
+{
+  "quests": [
+    {
+      "id": "q_wire",
+      "title": "Wake in the Wire",
+      "kind": "main",
+      "summary": "You woke in Static Row with no memory and one ability: to walk between the real city and the Grid. Find out why the Signal went quiet.",
+      "objectives": [
+        {"text": "Talk to the Fixer in Static Row", "cond": {"type": "flag", "id": "talked_fixer"}},
+        {"text": "Cross the wall in the Grid and hack the first terminal", "cond": {"type": "hacked", "id": "term_gate"}},
+        {"text": "Open the east gate (relay and south terminals)", "cond": {"type": "hacked_all", "ids": ["term_relay", "term_south"]}},
+        {"text": "Reach The Archive", "cond": {"type": "visited", "id": "3d_district_02"}}
+      ],
+      "reward": {"items": ["upgrade_phase_boots"], "text": "The Fixer's parting gift: Phase Boots."}
+    },
+    {
+      "id": "q_archive",
+      "title": "The Archive",
+      "kind": "main",
+      "requires": ["q_wire"],
+      "summary": "Every memory the Curator deleted ends up in the Archive. Reach its core and decide what the city remembers.",
+      "objectives": [
+        {"text": "Hack the terminal at the end of the shelf hall", "cond": {"type": "hacked", "id": "term_arch1"}},
+        {"text": "Collect the three reading-room keys", "cond": {"type": "hacked_all", "ids": ["term_r1", "term_r2", "term_r3"]}},
+        {"text": "Break into the Curator's core", "cond": {"type": "hacked", "id": "term_core"}}
+      ],
+      "reward": {"items": [], "text": ""}
+    },
+    {
+      "id": "q_memories",
+      "title": "Lost Memories",
+      "kind": "side",
+      "summary": "Fragments of your past are scattered through the Grid. Each one is a piece of who you were.",
+      "objectives": [
+        {"text": "Collect the memory fragments", "cond": {"type": "items", "prefix": "fragment_", "count": 4}}
+      ],
+      "reward": {"items": ["upgrade_strike_edge"], "text": "Remembering sharpens you: Strike Edge."}
+    },
+    {
+      "id": "q_streets",
+      "title": "Clear the Streets",
+      "kind": "side",
+      "summary": "Trace drones and enforcers are hunting everyone who still remembers. Thin them out.",
+      "objectives": [
+        {"text": "Destroy hostile machines", "cond": {"type": "counter", "id": "kills", "count": 5}}
+      ],
+      "reward": {"items": ["upgrade_plating"], "text": "Salvaged armour: Hardened Plating."}
+    },
+    {
+      "id": "q_cache",
+      "title": "Whispers in the Plaza",
+      "kind": "side",
+      "summary": "Some walls in Vantage Plaza only exist in the real world. Something may be hidden behind them.",
+      "objectives": [
+        {"text": "Find the hidden cache in Vantage Plaza", "cond": {"type": "flag", "id": "found_cache"}}
+      ],
+      "reward": {"items": [], "text": ""}
+    },
+    {
+      "id": "q_nodes",
+      "title": "Open Nodes",
+      "kind": "side",
+      "summary": "Old data nodes still hum in every district. Crack them all to rebuild a clean Signal cell.",
+      "objectives": [
+        {"text": "Hack the data nodes", "cond": {"type": "hacked_all", "ids": ["node_hub", "node_d01", "node_d02"]}}
+      ],
+      "reward": {"items": ["upgrade_signal_cell"], "text": "A clean power source: Signal Cell."}
+    }
+  ]
+}

@@ -22,6 +22,7 @@ func _initialize() -> void:
 	_scene = (load("res://scenes3d/district_01_3d.tscn") as PackedScene).instantiate()
 	root.add_child(_scene)
 	_state = root.get_node("GameState")
+	_state.save_path = "user://dev_test_save.json"  # never touch the real save
 	_state.signal_lost.connect(func() -> void: _lost_count += 1)
 
 
@@ -112,6 +113,7 @@ func _process(_delta: float) -> bool:
 			_check("pulse destroys a drone (hp 2 -> 0)", _dead(_drones[0]))
 			print("\n".join(_results))
 			print("RESULT: %s" % ("FAILED" if _failed else "ALL PASSED"))
+			_state.delete_save()
 			quit(1 if _failed else 0)
 	return false
 

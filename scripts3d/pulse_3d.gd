@@ -5,10 +5,10 @@ extends Node3D
 
 const SPEED: float = 18.0
 const LIFETIME: float = 0.9
-const DAMAGE: int = 2
 const HIT_RADIUS: float = 1.0
 
 var direction: Vector3 = Vector3(0, 0, -1)
+var damage: int = 2
 
 var _age: float = 0.0
 
@@ -56,6 +56,6 @@ func _physics_process(delta: float) -> void:
 	for node: Node in get_tree().get_nodes_in_group("enemy3d"):
 		var enemy := node as Enemy3D
 		if enemy and enemy.active and enemy.flat_distance(global_position) < HIT_RADIUS:
-			enemy.take_hit(DAMAGE, global_position - direction, "pulse")
+			enemy.take_hit(damage, global_position - direction, "pulse")
 			queue_free()
 			return
